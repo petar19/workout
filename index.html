@@ -513,7 +513,7 @@
                             <div class="exercise-title">${escapeHtml(exercise.name)}</div>
                             ${exercise.bodyParts ? `<div class="exercise-body-parts">Targets: ${escapeHtml(exercise.bodyParts)}</div>` : ''}
                         </div>
-                        <button class="btn btn-danger btn-small" onclick="deleteExercise(${exercise.id})">🗑️ Delete</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteExercise('${exercise.id}')">🗑️ Delete</button>
                     </div>
                     
                     ${exercise.videoUrl ? `
@@ -537,21 +537,21 @@
                                     class="set-input" 
                                     placeholder="Weight (lbs/kg)" 
                                     value="${escapeHtml(set.weight)}"
-                                    onchange="updateSet(${exercise.id}, ${index}, 'weight', this.value)">
+                                    onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
                                 <input 
                                     type="text" 
                                     inputmode="numeric"
                                     class="set-input" 
                                     placeholder="Reps" 
                                     value="${escapeHtml(set.reps)}"
-                                    onchange="updateSet(${exercise.id}, ${index}, 'reps', this.value)">
-                                <button class="btn btn-danger btn-small" onclick="removeSet(${exercise.id}, ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
+                                    onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
+                                <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
                             </div>
                         `).join('')}
                     </div>
                     
                     <div class="exercise-controls">
-                        <button class="btn btn-primary btn-small" onclick="addSet(${exercise.id})">➕ Add Set</button>
+                        <button class="btn btn-primary btn-small" onclick="addSet('${exercise.id}')">➕ Add Set</button>
                     </div>
                 </div>
             `).join('');
