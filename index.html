@@ -543,6 +543,7 @@
             <select id="workout-selector" onchange="loadSelectedWorkout()">
                 <option value="current">Current Workout</option>
             </select>
+            <button class="btn btn-danger btn-small" onclick="deleteSelectedWorkout()" style="margin-top: 10px; width: 100%;">🗑️ Delete Selected Workout</button>
         </div>
         
         <!-- Workout Title -->
@@ -598,6 +599,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" onclick="loadTemplate()">Load Template</button>
+                <button class="btn btn-danger" onclick="deleteSelectedTemplate()">Delete Template</button>
                 <button class="btn btn-danger" onclick="closeTemplateSelector()">Cancel</button>
             </div>
         </div>
@@ -621,6 +623,7 @@
             <div class="form-group">
                 <label class="form-label">Body Parts Worked (optional)</label>
                 <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders">
+                <button class="btn btn-info btn-small" onclick="autoDetermineBodyParts()" style="margin-top: 8px; width: 100%;">🔍 Auto-Determine Body Parts</button>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" id="modal-submit-btn" onclick="saveExerciseFromModal()">Add Exercise</button>
@@ -671,6 +674,115 @@
             "Wall Balls", "Medicine Ball Slams", "Sled Push", "Sled Pull", "Tire Flips",
             "Rope Climbs", "Ring Dips", "Ring Rows", "L-Sit", "Hollow Body Hold"
         ];
+
+        // Exercise to body parts mapping
+        const exerciseBodyPartsMap = {
+            "Bench Press": "Chest, Triceps, Shoulders",
+            "Squat": "Quadriceps, Glutes, Hamstrings, Core",
+            "Deadlift": "Back, Glutes, Hamstrings, Core",
+            "Overhead Press": "Shoulders, Triceps, Core",
+            "Barbell Row": "Back, Biceps, Shoulders",
+            "Pull-ups": "Back, Biceps, Core",
+            "Chin-ups": "Back, Biceps, Core",
+            "Dips": "Chest, Triceps, Shoulders",
+            "Push-ups": "Chest, Triceps, Shoulders, Core",
+            "Lunges": "Quadriceps, Glutes, Hamstrings",
+            "Leg Press": "Quadriceps, Glutes, Hamstrings",
+            "Leg Curl": "Hamstrings",
+            "Leg Extension": "Quadriceps",
+            "Calf Raises": "Calves",
+            "Romanian Deadlift": "Hamstrings, Glutes, Back",
+            "Front Squat": "Quadriceps, Glutes, Core",
+            "Incline Bench Press": "Upper Chest, Triceps, Shoulders",
+            "Decline Bench Press": "Lower Chest, Triceps, Shoulders",
+            "Dumbbell Fly": "Chest, Shoulders",
+            "Cable Crossover": "Chest, Shoulders",
+            "Lat Pulldown": "Back, Biceps",
+            "Seated Row": "Back, Biceps, Shoulders",
+            "T-Bar Row": "Back, Biceps, Shoulders",
+            "Face Pulls": "Rear Delts, Upper Back",
+            "Lateral Raises": "Shoulders",
+            "Front Raises": "Shoulders",
+            "Rear Delt Fly": "Rear Delts, Upper Back",
+            "Shrugs": "Traps, Upper Back",
+            "Bicep Curls": "Biceps",
+            "Hammer Curls": "Biceps, Forearms",
+            "Preacher Curls": "Biceps",
+            "Tricep Pushdowns": "Triceps",
+            "Skull Crushers": "Triceps",
+            "Close-Grip Bench Press": "Triceps, Chest, Shoulders",
+            "French Press": "Triceps",
+            "Concentration Curls": "Biceps",
+            "Arnold Press": "Shoulders, Triceps",
+            "Bulgarian Split Squat": "Quadriceps, Glutes, Hamstrings",
+            "Goblet Squat": "Quadriceps, Glutes, Core",
+            "Sumo Deadlift": "Glutes, Hamstrings, Back, Inner Thighs",
+            "Hip Thrust": "Glutes, Hamstrings",
+            "Good Mornings": "Hamstrings, Glutes, Back",
+            "Plank": "Core, Shoulders",
+            "Side Plank": "Obliques, Core",
+            "Russian Twists": "Obliques, Core",
+            "Bicycle Crunches": "Abs, Obliques",
+            "Hanging Leg Raises": "Abs, Hip Flexors",
+            "Cable Crunches": "Abs",
+            "Ab Wheel Rollout": "Abs, Core",
+            "Mountain Climbers": "Core, Shoulders, Legs",
+            "Burpees": "Full Body",
+            "Box Jumps": "Legs, Glutes, Calves",
+            "Jump Rope": "Calves, Shoulders, Cardio",
+            "Battle Ropes": "Shoulders, Core, Cardio",
+            "Farmer's Walk": "Forearms, Traps, Core",
+            "Kettlebell Swings": "Glutes, Hamstrings, Core, Shoulders",
+            "Turkish Get-Up": "Full Body, Core, Shoulders",
+            "Clean and Press": "Full Body, Shoulders, Legs",
+            "Snatch": "Full Body, Shoulders, Legs",
+            "Power Clean": "Full Body, Shoulders, Legs",
+            "Muscle-Up": "Back, Chest, Triceps, Core",
+            "Handstand Push-ups": "Shoulders, Triceps, Core",
+            "Pistol Squat": "Quadriceps, Glutes, Core",
+            "Nordic Curls": "Hamstrings, Core",
+            "Glute Ham Raise": "Hamstrings, Glutes",
+            "Back Extension": "Lower Back, Glutes, Hamstrings",
+            "Reverse Hyper": "Glutes, Hamstrings, Lower Back",
+            "Chest Supported Row": "Back, Biceps",
+            "Pendlay Row": "Back, Biceps, Core",
+            "Bent Over Row": "Back, Biceps, Core",
+            "One Arm Row": "Back, Biceps",
+            "Cable Row": "Back, Biceps",
+            "Machine Chest Press": "Chest, Triceps, Shoulders",
+            "Machine Shoulder Press": "Shoulders, Triceps",
+            "Pec Deck": "Chest",
+            "Machine Fly": "Chest",
+            "Leg Press Calf Raise": "Calves",
+            "Seated Calf Raise": "Calves",
+            "Hack Squat": "Quadriceps, Glutes",
+            "Smith Machine Squat": "Quadriceps, Glutes, Hamstrings",
+            "Safety Bar Squat": "Quadriceps, Glutes, Core",
+            "Pause Squat": "Quadriceps, Glutes, Hamstrings",
+            "Tempo Squat": "Quadriceps, Glutes, Hamstrings",
+            "Wide Grip Pull-up": "Back, Biceps",
+            "Neutral Grip Pull-up": "Back, Biceps",
+            "Assisted Pull-up": "Back, Biceps",
+            "Band Pull Apart": "Rear Delts, Upper Back",
+            "Cable Pull Through": "Glutes, Hamstrings",
+            "Reverse Lunge": "Quadriceps, Glutes, Hamstrings",
+            "Walking Lunge": "Quadriceps, Glutes, Hamstrings",
+            "Step-ups": "Quadriceps, Glutes",
+            "Box Squat": "Quadriceps, Glutes, Hamstrings",
+            "Zercher Squat": "Quadriceps, Glutes, Core",
+            "Overhead Squat": "Quadriceps, Glutes, Core, Shoulders",
+            "Thruster": "Legs, Shoulders, Core",
+            "Wall Balls": "Legs, Shoulders, Core",
+            "Medicine Ball Slams": "Core, Shoulders",
+            "Sled Push": "Legs, Glutes, Core",
+            "Sled Pull": "Legs, Back, Core",
+            "Tire Flips": "Full Body",
+            "Rope Climbs": "Back, Biceps, Core",
+            "Ring Dips": "Chest, Triceps, Shoulders, Core",
+            "Ring Rows": "Back, Biceps, Core",
+            "L-Sit": "Core, Hip Flexors",
+            "Hollow Body Hold": "Core"
+        };
 
         // Load exercises from localStorage on page load
         window.addEventListener('DOMContentLoaded', () => {
@@ -793,6 +905,16 @@
         function saveWorkout() {
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
             
+            // Check if a workout with the same name already exists
+            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === workoutTitle && !w.isTemplate);
+            if (existingIndex !== -1) {
+                if (!confirm(`A workout named "${workoutTitle}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+                // Remove the existing workout
+                savedWorkouts.splice(existingIndex, 1);
+            }
+
             const workoutData = {
                 workoutTitle: workoutTitle,
                 exercises: exercises,
@@ -823,6 +945,18 @@
 
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
             
+            const templateTitle = workoutTitle + ' (Template)';
+            
+            // Check if a template with the same name already exists
+            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
+            if (existingIndex !== -1) {
+                if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+                // Remove the existing template
+                savedWorkouts.splice(existingIndex, 1);
+            }
+
             // Create template with exercises but without weight/reps values
             const templateExercises = exercises.map(exercise => ({
                 id: exercise.id,
@@ -834,7 +968,7 @@
             }));
 
             const templateData = {
-                workoutTitle: workoutTitle + ' (Template)',
+                workoutTitle: templateTitle,
                 exercises: templateExercises,
                 timerSeconds: 0,
                 savedAt: new Date().toISOString(),
@@ -883,6 +1017,69 @@
             document.getElementById('template-selector-modal').classList.remove('active');
         }
 
+        function deleteSelectedTemplate() {
+            const selector = document.getElementById('template-selector');
+            const selectedIndex = parseInt(selector.value);
+            
+            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+                alert('Please select a template to delete');
+                return;
+            }
+
+            const template = savedWorkouts[selectedIndex];
+            
+            if (!confirm(`Are you sure you want to delete "${template.workoutTitle}"?`)) {
+                return;
+            }
+
+            // Remove the template
+            savedWorkouts.splice(selectedIndex, 1);
+            saveSavedWorkouts();
+            updateWorkoutSelector();
+            
+            // Refresh template selector
+            showTemplateSelector();
+            
+            alert('Template deleted successfully!');
+        }
+
+        function deleteSelectedWorkout() {
+            const selector = document.getElementById('workout-selector');
+            const selectedValue = selector.value;
+
+            if (selectedValue === 'current') {
+                alert('Cannot delete the current workout. To clear it, use "Reset Workout".');
+                return;
+            }
+
+            const index = parseInt(selectedValue);
+            if (isNaN(index) || !savedWorkouts[index]) {
+                alert('Please select a saved workout to delete');
+                return;
+            }
+
+            const workout = savedWorkouts[index];
+            
+            if (!confirm(`Are you sure you want to delete "${workout.workoutTitle}"?`)) {
+                return;
+            }
+
+            // Remove the workout
+            savedWorkouts.splice(index, 1);
+            saveSavedWorkouts();
+            
+            // If the deleted workout was the current one, switch to "current"
+            if (currentWorkoutId === selectedValue) {
+                currentWorkoutId = 'current';
+                loadFromLocalStorage();
+                renderExercises();
+                initializeSortable();
+            }
+            
+            updateWorkoutSelector();
+            alert('Workout deleted successfully!');
+        }
+
         function loadTemplate() {
             const selector = document.getElementById('template-selector');
             const selectedIndex = parseInt(selector.value);
@@ -901,6 +1098,9 @@
                 }
             }
 
+            // Close dialog first before destroying sortable
+            closeTemplateSelector();
+
             // Load template (deep copy to avoid reference issues)
             exercises = JSON.parse(JSON.stringify(template.exercises || []));
             workoutTitle = template.workoutTitle.replace(' (Template)', ''); // Remove template suffix
@@ -913,14 +1113,17 @@
             renderExercises();
             initializeSortable();
             
-            closeTemplateSelector();
             alert('Template loaded! Start your workout.');
         }
 
         function resetWorkout() {
             if (confirm('Are you sure you want to reset the entire workout? This will delete all exercises.')) {
                 exercises = [];
+                workoutTitle = 'My Workout';
                 timerSeconds = 0;
+                currentWorkoutId = 'current';
+                document.getElementById('workout-title').value = workoutTitle;
+                document.getElementById('workout-selector').value = 'current';
                 pauseTimer();
                 updateTimerDisplay();
                 saveToLocalStorage();
@@ -1006,6 +1209,40 @@
             document.getElementById('exercise-body-parts').value = '';
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
+        }
+
+        function autoDetermineBodyParts() {
+            const exerciseName = document.getElementById('exercise-name').value.trim();
+            
+            if (!exerciseName) {
+                alert('Please enter an exercise name first');
+                return;
+            }
+
+            // Try to find an exact match first
+            if (exerciseBodyPartsMap[exerciseName]) {
+                document.getElementById('exercise-body-parts').value = exerciseBodyPartsMap[exerciseName];
+                return;
+            }
+
+            // Try case-insensitive match
+            const lowerExerciseName = exerciseName.toLowerCase();
+            for (const [key, value] of Object.entries(exerciseBodyPartsMap)) {
+                if (key.toLowerCase() === lowerExerciseName) {
+                    document.getElementById('exercise-body-parts').value = value;
+                    return;
+                }
+            }
+
+            // Try partial match (if exercise name contains the key or vice versa)
+            for (const [key, value] of Object.entries(exerciseBodyPartsMap)) {
+                if (lowerExerciseName.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerExerciseName)) {
+                    document.getElementById('exercise-body-parts').value = value;
+                    return;
+                }
+            }
+
+            alert('Could not automatically determine body parts for this exercise. Please enter them manually.');
         }
 
         function showEditExerciseModal(exerciseId) {
@@ -1245,7 +1482,7 @@
                         </iframe>
                     </div>`;
             } else {
-                return `<div class="add-video-container"><button class="btn btn-info btn-small" onclick="editExercise('${exercise.id}')">➕ Add Video</button></div>`;
+                return '';
             }
         }
 
