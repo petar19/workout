@@ -625,6 +625,14 @@
                 <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders">
                 <button class="btn btn-info btn-small" onclick="autoDetermineBodyParts()" style="margin-top: 8px; width: 100%;">🔍 Auto-Determine Body Parts</button>
             </div>
+            <div class="form-group">
+                <label class="form-label">Setup Details (optional)</label>
+                <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes/Description (optional)</label>
+                <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;"></textarea>
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" id="modal-submit-btn" onclick="saveExerciseFromModal()">Add Exercise</button>
                 <button class="btn btn-danger" onclick="closeExerciseModal()">Cancel</button>
@@ -808,9 +816,13 @@
         }
 
         function saveSavedWorkouts() {
-            // Limit to 20 workouts
-            if (savedWorkouts.length > 20) {
-                savedWorkouts = savedWorkouts.slice(0, 20);
+            // Limit to 50 workouts
+            // localStorage typically has a 5-10MB limit per domain (varies by browser)
+            // With average workout size ~20KB (10 exercises with all data), 50 workouts = ~1MB
+            // This leaves plenty of space for other data and future growth
+            // Maximum theoretical capacity: ~250-500 workouts before hitting storage limits
+            if (savedWorkouts.length > 50) {
+                savedWorkouts = savedWorkouts.slice(0, 50);
             }
             localStorage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
         }
@@ -926,9 +938,9 @@
             // Add to saved workouts
             savedWorkouts.unshift(workoutData);
             
-            // Limit to 20 workouts
-            if (savedWorkouts.length > 20) {
-                savedWorkouts = savedWorkouts.slice(0, 20);
+            // Limit to 50 workouts
+            if (savedWorkouts.length > 50) {
+                savedWorkouts = savedWorkouts.slice(0, 50);
             }
 
             saveSavedWorkouts();
@@ -963,6 +975,8 @@
                 name: exercise.name,
                 videoUrl: exercise.videoUrl,
                 bodyParts: exercise.bodyParts,
+                setup: exercise.setup,
+                notes: exercise.notes,
                 videoCollapsed: false,
                 sets: exercise.sets.map(() => ({ weight: '', reps: '' })) // Keep set count, clear values
             }));
@@ -978,9 +992,9 @@
             // Add to saved workouts
             savedWorkouts.unshift(templateData);
             
-            // Limit to 20 workouts
-            if (savedWorkouts.length > 20) {
-                savedWorkouts = savedWorkouts.slice(0, 20);
+            // Limit to 50 workouts
+            if (savedWorkouts.length > 50) {
+                savedWorkouts = savedWorkouts.slice(0, 50);
             }
 
             saveSavedWorkouts();
@@ -1207,6 +1221,8 @@
             document.getElementById('exercise-name').value = '';
             document.getElementById('exercise-video').value = '';
             document.getElementById('exercise-body-parts').value = '';
+            document.getElementById('exercise-setup').value = '';
+            document.getElementById('exercise-notes').value = '';
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
         }
@@ -1259,6 +1275,8 @@
                 exercise.videoUrl.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=') : '';
             document.getElementById('exercise-video').value = videoUrl;
             document.getElementById('exercise-body-parts').value = exercise.bodyParts || '';
+            document.getElementById('exercise-setup').value = exercise.setup || '';
+            document.getElementById('exercise-notes').value = exercise.notes || '';
             
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
@@ -1269,6 +1287,8 @@
             document.getElementById('exercise-name').value = '';
             document.getElementById('exercise-video').value = '';
             document.getElementById('exercise-body-parts').value = '';
+            document.getElementById('exercise-setup').value = '';
+            document.getElementById('exercise-notes').value = '';
             editingExerciseId = null;
             removeAutocomplete();
         }
@@ -1277,6 +1297,8 @@
             const name = document.getElementById('exercise-name').value.trim();
             const videoUrl = document.getElementById('exercise-video').value.trim();
             const bodyParts = document.getElementById('exercise-body-parts').value.trim();
+            const setup = document.getElementById('exercise-setup').value.trim();
+            const notes = document.getElementById('exercise-notes').value.trim();
 
             if (!name) {
                 alert('Please enter an exercise name');
@@ -1294,6 +1316,8 @@
                     exercise.name = name;
                     exercise.videoUrl = getYouTubeEmbedUrl(videoUrl);
                     exercise.bodyParts = bodyParts;
+                    exercise.setup = setup;
+                    exercise.notes = notes;
                 }
             } else {
                 // Add new exercise
@@ -1302,6 +1326,8 @@
                     name: name,
                     videoUrl: getYouTubeEmbedUrl(videoUrl),
                     bodyParts: bodyParts,
+                    setup: setup,
+                    notes: notes,
                     videoCollapsed: false,
                     sets: [
                         { weight: '', reps: '' }
@@ -1466,6 +1492,33 @@
             }
         }
 
+        function renderSetupAndNotes(exercise) {
+            if (!exercise.setup && !exercise.notes) {
+                return '';
+            }
+
+            let html = '<div style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px;">';
+            
+            if (exercise.setup) {
+                html += `
+                    <div style="margin-bottom: 10px;">
+                        <strong style="color: #667eea;">⚙️ Setup:</strong>
+                        <div style="color: #4a5568; margin-top: 5px; white-space: pre-wrap;">${escapeHtml(exercise.setup)}</div>
+                    </div>`;
+            }
+            
+            if (exercise.notes) {
+                html += `
+                    <div>
+                        <strong style="color: #667eea;">📝 Notes:</strong>
+                        <div style="color: #4a5568; margin-top: 5px; white-space: pre-wrap;">${escapeHtml(exercise.notes)}</div>
+                    </div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
         function renderVideoSection(exercise) {
             if (exercise.videoUrl) {
                 const isCollapsed = exercise.videoCollapsed || false;
@@ -1584,6 +1637,8 @@
                     </div>
                     
                     ${renderVideoSection(exercise)}
+                    
+                    ${renderSetupAndNotes(exercise)}
                     
                     <div class="sets-container">
                         ${exercise.sets.map((set, index) => `
@@ -1826,9 +1881,9 @@
                         }
                     }
                     
-                    // Limit to 20 workouts
-                    if (savedWorkouts.length > 20) {
-                        savedWorkouts = savedWorkouts.slice(0, 20);
+                    // Limit to 50 workouts
+                    if (savedWorkouts.length > 50) {
+                        savedWorkouts = savedWorkouts.slice(0, 50);
                     }
                     
                     saveSavedWorkouts();
