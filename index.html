@@ -580,6 +580,8 @@
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
             <button class="btn btn-success" onclick="saveWorkout()">💾 Save Workout</button>
+            <button class="btn btn-success" onclick="saveAsTemplate()">📋 Save as Template</button>
+            <button class="btn btn-primary" onclick="showTemplateSelector()">🎯 Start from Template</button>
             <button class="btn btn-danger" onclick="resetWorkout()">🔄 Reset Workout</button>
             <button class="btn btn-info" onclick="resetAllValues()">⚡ Reset All Values</button>
             <button class="btn btn-success" onclick="exportWorkout()">📥 Export Workout</button>
@@ -599,6 +601,22 @@
 
         <div class="bottom-controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
+        </div>
+    </div>
+
+    <!-- Template Selector Modal -->
+    <div id="template-selector-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Start from Template</div>
+            <div class="form-group">
+                <label class="form-label">Select a Template</label>
+                <select id="template-selector" class="form-input" size="10" style="height: 300px;">
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="loadTemplate()">Load Template</button>
+                <button class="btn btn-danger" onclick="closeTemplateSelector()">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -755,7 +773,8 @@
             savedWorkouts.forEach((workout, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                option.textContent = `${workout.workoutTitle} (${new Date(workout.savedAt).toLocaleDateString()})`;
+                const templateIndicator = workout.isTemplate ? ' 📋' : '';
+                option.textContent = `${workout.workoutTitle}${templateIndicator} (${new Date(workout.savedAt).toLocaleDateString()})`;
                 selector.appendChild(option);
             });
 
@@ -795,7 +814,8 @@
                 workoutTitle: workoutTitle,
                 exercises: exercises,
                 timerSeconds: timerSeconds,
-                savedAt: new Date().toISOString()
+                savedAt: new Date().toISOString(),
+                isTemplate: false
             };
 
             // Add to saved workouts
@@ -810,6 +830,108 @@
             saveToLocalStorage();
             updateWorkoutSelector();
             alert('Workout saved successfully!');
+        }
+
+        function saveAsTemplate() {
+            if (exercises.length === 0) {
+                alert('No exercises to save as template. Add some exercises first!');
+                return;
+            }
+
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
+            
+            // Create template with exercises but without weight/reps values
+            const templateExercises = exercises.map(exercise => ({
+                id: exercise.id,
+                name: exercise.name,
+                videoUrl: exercise.videoUrl,
+                bodyParts: exercise.bodyParts,
+                videoCollapsed: false,
+                sets: exercise.sets.map(() => ({ weight: '', reps: '' })) // Keep set count, clear values
+            }));
+
+            const templateData = {
+                workoutTitle: workoutTitle + ' (Template)',
+                exercises: templateExercises,
+                timerSeconds: 0,
+                savedAt: new Date().toISOString(),
+                isTemplate: true
+            };
+
+            // Add to saved workouts
+            savedWorkouts.unshift(templateData);
+            
+            // Limit to 20 workouts
+            if (savedWorkouts.length > 20) {
+                savedWorkouts = savedWorkouts.slice(0, 20);
+            }
+
+            saveSavedWorkouts();
+            updateWorkoutSelector();
+            alert('Template saved successfully!');
+        }
+
+        function showTemplateSelector() {
+            // Filter only templates from savedWorkouts
+            const templates = savedWorkouts.filter(workout => workout.isTemplate === true);
+            
+            if (templates.length === 0) {
+                alert('No templates available. Save a workout as a template first!');
+                return;
+            }
+
+            const selector = document.getElementById('template-selector');
+            selector.innerHTML = '';
+            
+            templates.forEach((template, index) => {
+                const option = document.createElement('option');
+                // Store the actual index in savedWorkouts for later retrieval
+                const actualIndex = savedWorkouts.findIndex(w => w === template);
+                option.value = actualIndex;
+                const exerciseCount = template.exercises ? template.exercises.length : 0;
+                option.textContent = `${template.workoutTitle} (${exerciseCount} exercises, ${new Date(template.savedAt).toLocaleDateString()})`;
+                selector.appendChild(option);
+            });
+
+            document.getElementById('template-selector-modal').classList.add('active');
+        }
+
+        function closeTemplateSelector() {
+            document.getElementById('template-selector-modal').classList.remove('active');
+        }
+
+        function loadTemplate() {
+            const selector = document.getElementById('template-selector');
+            const selectedIndex = parseInt(selector.value);
+            
+            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+                alert('Please select a template');
+                return;
+            }
+
+            const template = savedWorkouts[selectedIndex];
+            
+            // Confirm if there are current exercises
+            if (exercises.length > 0) {
+                if (!confirm('This will replace your current workout. Continue?')) {
+                    return;
+                }
+            }
+
+            // Load template (deep copy to avoid reference issues)
+            exercises = JSON.parse(JSON.stringify(template.exercises || []));
+            workoutTitle = template.workoutTitle.replace(' (Template)', ''); // Remove template suffix
+            timerSeconds = 0;
+            
+            document.getElementById('workout-title').value = workoutTitle;
+            pauseTimer();
+            updateTimerDisplay();
+            saveToLocalStorage();
+            renderExercises();
+            initializeSortable();
+            
+            closeTemplateSelector();
+            alert('Template loaded! Start your workout.');
         }
 
         function resetWorkout() {
@@ -1505,6 +1627,13 @@
         document.getElementById('add-exercise-modal').addEventListener('click', (e) => {
             if (e.target.id === 'add-exercise-modal') {
                 closeExerciseModal();
+            }
+        });
+
+        // Close template modal when clicking outside
+        document.getElementById('template-selector-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'template-selector-modal') {
+                closeTemplateSelector();
             }
         });
 
