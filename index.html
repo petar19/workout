@@ -441,7 +441,7 @@
             }
 
             const exercise = {
-                id: Date.now() + Math.random(), // Use timestamp + random to avoid collisions
+                id: `ex_${Date.now()}_${Math.floor(Math.random() * 10000)}`, // Unique string ID
                 name: name,
                 videoUrl: getYouTubeEmbedUrl(videoUrl),
                 bodyParts: bodyParts,
