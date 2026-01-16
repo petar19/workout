@@ -309,6 +309,67 @@
             }
         }
 
+        .workout-title-container {
+            margin-bottom: 20px;
+        }
+
+        .workout-title-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .workout-title-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .timer-container {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .editable-field {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .editable-field:hover {
+            background: #e2e8f0;
+        }
+
+        .edit-icon {
+            margin-left: 8px;
+            font-size: 0.8em;
+            color: #718096;
+        }
+
         @media (max-width: 480px) {
             .controls {
                 flex-direction: column;
@@ -320,7 +381,7 @@
             }
 
             .set-row {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
                 gap: 8px;
             }
 
@@ -328,8 +389,24 @@
                 grid-column: 1 / -1;
             }
 
+            .set-row .set-input {
+                width: 100%;
+            }
+
+            .set-row .btn {
+                width: 100%;
+            }
+
             .exercise-controls {
                 flex-direction: column;
+            }
+
+            .timer-display {
+                font-size: 2rem;
+            }
+
+            .workout-title-input {
+                font-size: 1rem;
             }
         }
     </style>
@@ -338,8 +415,26 @@
     <div class="container">
         <h1>💪 Workout Tracker</h1>
         
+        <!-- Workout Title -->
+        <div class="workout-title-container">
+            <input type="text" id="workout-title" class="workout-title-input" placeholder="Enter workout name..." value="My Workout">
+        </div>
+        
+        <!-- Timer -->
+        <div class="timer-container">
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <div class="timer-controls">
+                <button class="btn btn-success btn-small" id="play-btn" onclick="startTimer()">▶️ Play</button>
+                <button class="btn btn-danger btn-small" id="pause-btn" onclick="pauseTimer()" style="display: none;">⏸️ Pause</button>
+                <button class="btn btn-info btn-small" onclick="resetTimer()">🔄 Reset</button>
+            </div>
+        </div>
+        
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
+            <button class="btn btn-success" onclick="saveWorkout()">💾 Save Workout</button>
+            <button class="btn btn-danger" onclick="resetWorkout()">🔄 Reset Workout</button>
+            <button class="btn btn-info" onclick="resetAllValues()">⚡ Reset All Values</button>
             <button class="btn btn-success" onclick="exportWorkout()">📥 Export Workout</button>
             <button class="btn btn-info" onclick="importWorkout()">📤 Import Workout</button>
         </div>
@@ -378,6 +473,10 @@
 
     <script>
         let exercises = [];
+        let workoutTitle = 'My Workout';
+        let timerRunning = false;
+        let timerSeconds = 0;
+        let timerInterval = null;
 
         // Load exercises from localStorage on page load
         window.addEventListener('DOMContentLoaded', () => {
@@ -389,7 +488,17 @@
             const saved = localStorage.getItem('workoutPlan');
             if (saved) {
                 try {
-                    exercises = JSON.parse(saved);
+                    const data = JSON.parse(saved);
+                    if (data.exercises) {
+                        exercises = data.exercises;
+                        workoutTitle = data.workoutTitle || 'My Workout';
+                        timerSeconds = data.timerSeconds || 0;
+                        document.getElementById('workout-title').value = workoutTitle;
+                        updateTimerDisplay();
+                    } else {
+                        // Legacy format
+                        exercises = data;
+                    }
                 } catch (e) {
                     console.error('Error loading from localStorage:', e);
                 }
@@ -397,7 +506,92 @@
         }
 
         function saveToLocalStorage() {
-            localStorage.setItem('workoutPlan', JSON.stringify(exercises));
+            const data = {
+                workoutTitle: workoutTitle,
+                exercises: exercises,
+                timerSeconds: timerSeconds
+            };
+            localStorage.setItem('workoutPlan', JSON.stringify(data));
+        }
+
+        function saveWorkout() {
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
+            saveToLocalStorage();
+            alert('Workout saved successfully!');
+        }
+
+        function resetWorkout() {
+            if (confirm('Are you sure you want to reset the entire workout? This will delete all exercises.')) {
+                exercises = [];
+                timerSeconds = 0;
+                pauseTimer();
+                updateTimerDisplay();
+                saveToLocalStorage();
+                renderExercises();
+                alert('Workout reset successfully!');
+            }
+        }
+
+        function resetAllValues() {
+            if (confirm('Are you sure you want to reset all weight and reps values?')) {
+                exercises.forEach(exercise => {
+                    exercise.sets.forEach(set => {
+                        set.weight = '';
+                        set.reps = '';
+                    });
+                });
+                saveToLocalStorage();
+                renderExercises();
+                alert('All values reset successfully!');
+            }
+        }
+
+        // Timer functions
+        function startTimer() {
+            if (!timerRunning) {
+                timerRunning = true;
+                document.getElementById('play-btn').style.display = 'none';
+                document.getElementById('pause-btn').style.display = 'inline-block';
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                    saveToLocalStorage();
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            if (timerRunning) {
+                timerRunning = false;
+                document.getElementById('play-btn').style.display = 'inline-block';
+                document.getElementById('pause-btn').style.display = 'none';
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = 0;
+            updateTimerDisplay();
+            saveToLocalStorage();
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(timerSeconds / 3600);
+            const minutes = Math.floor((timerSeconds % 3600) / 60);
+            const seconds = timerSeconds % 60;
+            const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer-display').textContent = display;
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours}h${minutes}m${secs}s`;
         }
 
         function showAddExerciseModal() {
@@ -510,8 +704,10 @@
                 <div class="exercise-card">
                     <div class="exercise-header">
                         <div>
-                            <div class="exercise-title">${escapeHtml(exercise.name)}</div>
-                            ${exercise.bodyParts ? `<div class="exercise-body-parts">Targets: ${escapeHtml(exercise.bodyParts)}</div>` : ''}
+                            <div class="exercise-title editable-field" onclick="editExerciseName('${exercise.id}')" title="Click to edit">
+                                ${escapeHtml(exercise.name)}<span class="edit-icon">✏️</span>
+                            </div>
+                            ${exercise.bodyParts ? `<div class="exercise-body-parts editable-field" onclick="editExerciseBodyParts('${exercise.id}')" title="Click to edit">${escapeHtml(exercise.bodyParts)}<span class="edit-icon">✏️</span></div>` : '<div class="exercise-body-parts editable-field" onclick="editExerciseBodyParts(\'${exercise.id}\')" title="Click to add body parts"><em>Add body parts</em><span class="edit-icon">✏️</span></div>'}
                         </div>
                         <button class="btn btn-danger btn-small" onclick="deleteExercise('${exercise.id}')">🗑️ Delete</button>
                     </div>
@@ -525,7 +721,7 @@
                                 allowfullscreen>
                             </iframe>
                         </div>
-                    ` : ''}
+                    ` : '<div style="margin-bottom: 10px;"><button class="btn btn-info btn-small" onclick="editExerciseVideo(\'${exercise.id}\')">➕ Add Video</button></div>'}
                     
                     <div class="sets-container">
                         ${exercise.sets.map((set, index) => `
@@ -574,12 +770,26 @@
                 return;
             }
 
-            const dataStr = JSON.stringify(exercises, null, 2);
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
+            const data = {
+                workoutTitle: workoutTitle,
+                exercises: exercises,
+                timerSeconds: timerSeconds,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `workout-plan-${new Date().toISOString().split('T')[0]}.json`;
+            
+            // Create filename with workout title, datetime, and duration
+            const sanitizedTitle = workoutTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const datetime = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + new Date().toTimeString().split(' ')[0].replace(/:/g, '-');
+            const duration = formatDuration(timerSeconds);
+            link.download = `${sanitizedTitle}_${datetime}_${duration}.json`;
+            
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -600,7 +810,20 @@
                     try {
                         const imported = JSON.parse(event.target.result);
                         
-                        if (!Array.isArray(imported)) {
+                        // Check if it's new format or legacy format
+                        let newExercises, newTitle, newTimerSeconds;
+                        
+                        if (imported.exercises && Array.isArray(imported.exercises)) {
+                            // New format
+                            newExercises = imported.exercises;
+                            newTitle = imported.workoutTitle || 'Imported Workout';
+                            newTimerSeconds = imported.timerSeconds || 0;
+                        } else if (Array.isArray(imported)) {
+                            // Legacy format
+                            newExercises = imported;
+                            newTitle = 'Imported Workout';
+                            newTimerSeconds = 0;
+                        } else {
                             throw new Error('Invalid workout file format');
                         }
 
@@ -609,7 +832,12 @@
                             : 'Import this workout plan?';
 
                         if (confirm(confirmMsg)) {
-                            exercises = imported;
+                            exercises = newExercises;
+                            workoutTitle = newTitle;
+                            timerSeconds = newTimerSeconds;
+                            document.getElementById('workout-title').value = workoutTitle;
+                            pauseTimer();
+                            updateTimerDisplay();
                             saveToLocalStorage();
                             renderExercises();
                         }
@@ -621,6 +849,44 @@
             };
             
             input.click();
+        }
+
+        // Edit functions
+        function editExerciseName(exerciseId) {
+            const exercise = exercises.find(ex => ex.id === exerciseId);
+            if (!exercise) return;
+            
+            const newName = prompt('Edit exercise name:', exercise.name);
+            if (newName !== null && newName.trim()) {
+                exercise.name = newName.trim();
+                saveToLocalStorage();
+                renderExercises();
+            }
+        }
+
+        function editExerciseBodyParts(exerciseId) {
+            const exercise = exercises.find(ex => ex.id === exerciseId);
+            if (!exercise) return;
+            
+            const newBodyParts = prompt('Edit body parts (comma separated):', exercise.bodyParts || '');
+            if (newBodyParts !== null) {
+                exercise.bodyParts = newBodyParts.trim();
+                saveToLocalStorage();
+                renderExercises();
+            }
+        }
+
+        function editExerciseVideo(exerciseId) {
+            const exercise = exercises.find(ex => ex.id === exerciseId);
+            if (!exercise) return;
+            
+            const currentUrl = exercise.videoUrl ? exercise.videoUrl.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=') : '';
+            const newUrl = prompt('Edit YouTube video URL:', currentUrl);
+            if (newUrl !== null) {
+                exercise.videoUrl = getYouTubeEmbedUrl(newUrl.trim());
+                saveToLocalStorage();
+                renderExercises();
+            }
         }
 
         // Close modal when clicking outside
