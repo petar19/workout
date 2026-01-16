@@ -824,7 +824,16 @@
             if (savedWorkouts.length > 50) {
                 savedWorkouts = savedWorkouts.slice(0, 50);
             }
-            localStorage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
+            try {
+                localStorage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    alert('Storage limit exceeded! Please delete some old workouts or export them to free up space.');
+                    console.error('localStorage quota exceeded:', e);
+                } else {
+                    console.error('Error saving workouts:', e);
+                }
+            }
         }
 
         function loadUsedExerciseNames() {
@@ -870,7 +879,16 @@
                 exercises: exercises,
                 timerSeconds: timerSeconds
             };
-            localStorage.setItem('workoutPlan', JSON.stringify(data));
+            try {
+                localStorage.setItem('workoutPlan', JSON.stringify(data));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    alert('Storage limit exceeded! Consider exporting and removing old workouts to free up space.');
+                    console.error('localStorage quota exceeded:', e);
+                } else {
+                    console.error('Error saving to localStorage:', e);
+                }
+            }
         }
 
         function updateWorkoutSelector() {
@@ -1235,13 +1253,7 @@
                 return;
             }
 
-            // Try to find an exact match first
-            if (exerciseBodyPartsMap[exerciseName]) {
-                document.getElementById('exercise-body-parts').value = exerciseBodyPartsMap[exerciseName];
-                return;
-            }
-
-            // Try case-insensitive match
+            // Try to find an exact match first (case-insensitive)
             const lowerExerciseName = exerciseName.toLowerCase();
             for (const [key, value] of Object.entries(exerciseBodyPartsMap)) {
                 if (key.toLowerCase() === lowerExerciseName) {
@@ -1250,9 +1262,13 @@
                 }
             }
 
-            // Try partial match (if exercise name contains the key or vice versa)
+            // Try partial match only if the exercise name is contained within a known exercise
+            // This avoids false positives like 'Squat' matching 'Overhead Squat'
             for (const [key, value] of Object.entries(exerciseBodyPartsMap)) {
-                if (lowerExerciseName.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerExerciseName)) {
+                const lowerKey = key.toLowerCase();
+                // Only match if the exercise name matches the start of a known exercise
+                // or is a significant part of it (more than 5 characters)
+                if (lowerExerciseName.length > 5 && lowerKey.includes(lowerExerciseName)) {
                     document.getElementById('exercise-body-parts').value = value;
                     return;
                 }
