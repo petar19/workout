@@ -342,6 +342,37 @@
             padding: 20px;
             margin-bottom: 20px;
             text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .timer-container.sticky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin-bottom: 0;
+            border-radius: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .timer-spacer {
+            height: 0;
+            transition: height 0.3s ease;
+        }
+
+        .timer-spacer.active {
+            height: 130px;
         }
 
         .timer-display {
@@ -552,7 +583,7 @@
         </div>
         
         <!-- Timer -->
-        <div class="timer-container">
+        <div class="timer-container" id="timer-container">
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
                 <button class="btn btn-success btn-small" id="play-btn" onclick="startTimer()">▶️ Play</button>
@@ -560,6 +591,7 @@
                 <button class="btn btn-info btn-small" onclick="resetTimer()">🔄 Reset</button>
             </div>
         </div>
+        <div class="timer-spacer" id="timer-spacer"></div>
         
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
@@ -1185,6 +1217,11 @@
                 timerRunning = true;
                 document.getElementById('play-btn').style.display = 'none';
                 document.getElementById('pause-btn').style.display = 'inline-block';
+                
+                // Make timer sticky
+                document.getElementById('timer-container').classList.add('sticky');
+                document.getElementById('timer-spacer').classList.add('active');
+                
                 timerInterval = setInterval(() => {
                     timerSeconds++;
                     updateTimerDisplay();
@@ -1201,6 +1238,11 @@
                 timerRunning = false;
                 document.getElementById('play-btn').style.display = 'inline-block';
                 document.getElementById('pause-btn').style.display = 'none';
+                
+                // Remove sticky state
+                document.getElementById('timer-container').classList.remove('sticky');
+                document.getElementById('timer-spacer').classList.remove('active');
+                
                 if (timerInterval) {
                     clearInterval(timerInterval);
                     timerInterval = null;
