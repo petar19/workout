@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Tracker</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -464,6 +464,52 @@
             border-color: #cbd5e0;
         }
 
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-to-top:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        }
+
+        .scroll-to-top.visible {
+            display: flex;
+        }
+
+        .bottom-controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .scroll-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+        }
+
         @media (max-width: 480px) {
             .controls {
                 flex-direction: column;
@@ -550,7 +596,14 @@
                 <p>Click "Add Exercise" to get started with your workout plan!</p>
             </div>
         </div>
+
+        <div class="bottom-controls">
+            <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
+        </div>
     </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scroll-to-top" onclick="scrollToTop()">↑</button>
 
     <!-- Add/Edit Exercise Modal -->
     <div id="add-exercise-modal" class="modal">
@@ -587,6 +640,8 @@
         let usedExerciseNames = new Set();
         let sortableInstance = null;
         let editingExerciseId = null; // Track if we're editing an exercise
+        let lastScrollY = 0;
+        let scrollTimeout = null;
 
         // Top 100 exercises list
         const top100Exercises = [
@@ -624,6 +679,7 @@
             updateWorkoutSelector();
             renderExercises();
             initializeSortable();
+            initScrollToTop();
         });
 
         function loadSavedWorkouts() {
@@ -1227,6 +1283,12 @@
 
             if (exercises.length === 0) return;
 
+            // Check if Sortable is available
+            if (typeof Sortable === 'undefined') {
+                console.warn('Sortable library not loaded, drag-and-drop disabled');
+                return;
+            }
+
             sortableInstance = Sortable.create(container, {
                 animation: 150,
                 handle: '.drag-handle',
@@ -1296,6 +1358,12 @@
         async function exportMultipleWorkouts() {
             if (savedWorkouts.length === 0) {
                 alert('No saved workouts to export. Save some workouts first!');
+                return;
+            }
+
+            // Check if JSZip is available
+            if (typeof JSZip === 'undefined') {
+                alert('ZIP export functionality is not available. Please check your internet connection and reload the page.');
                 return;
             }
 
@@ -1378,6 +1446,12 @@
         }
 
         async function importZipWorkouts() {
+            // Check if JSZip is available
+            if (typeof JSZip === 'undefined') {
+                alert('ZIP import functionality is not available. Please check your internet connection and reload the page.');
+                return;
+            }
+
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.zip';
@@ -1440,6 +1514,42 @@
                 removeAutocomplete();
             }
         });
+
+        // Scroll to top functionality
+        function initScrollToTop() {
+            const scrollBtn = document.getElementById('scroll-to-top');
+            
+            window.addEventListener('scroll', () => {
+                const currentScrollY = window.scrollY;
+                
+                // Clear existing timeout
+                if (scrollTimeout) {
+                    clearTimeout(scrollTimeout);
+                }
+                
+                // Show button if scrolling up and not at the top
+                if (currentScrollY < lastScrollY && currentScrollY > 300) {
+                    scrollBtn.classList.add('visible');
+                    
+                    // Hide button after 3 seconds of no scrolling
+                    scrollTimeout = setTimeout(() => {
+                        scrollBtn.classList.remove('visible');
+                    }, 3000);
+                } else if (currentScrollY <= 100) {
+                    // Hide at the top
+                    scrollBtn.classList.remove('visible');
+                }
+                
+                lastScrollY = currentScrollY;
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
     </script>
 </body>
 </html>
