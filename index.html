@@ -280,6 +280,10 @@
             margin-bottom: 20px;
         }
 
+        .add-video-container {
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -555,7 +559,10 @@
                 timerInterval = setInterval(() => {
                     timerSeconds++;
                     updateTimerDisplay();
-                    saveToLocalStorage();
+                    // Save to localStorage every 10 seconds to reduce performance impact
+                    if (timerSeconds % 10 === 0) {
+                        saveToLocalStorage();
+                    }
                 }, 1000);
             }
         }
@@ -569,6 +576,8 @@
                     clearInterval(timerInterval);
                     timerInterval = null;
                 }
+                // Save when paused
+                saveToLocalStorage();
             }
         }
 
@@ -686,6 +695,30 @@
             }
         }
 
+        function renderBodyPartsField(exercise) {
+            if (exercise.bodyParts) {
+                return `<div class="exercise-body-parts editable-field" onclick="editExerciseBodyParts('${exercise.id}')" title="Click to edit">${escapeHtml(exercise.bodyParts)}<span class="edit-icon">✏️</span></div>`;
+            } else {
+                return `<div class="exercise-body-parts editable-field" onclick="editExerciseBodyParts('${exercise.id}')" title="Click to add body parts"><em>Add body parts</em><span class="edit-icon">✏️</span></div>`;
+            }
+        }
+
+        function renderVideoSection(exercise) {
+            if (exercise.videoUrl) {
+                return `
+                    <div class="video-container">
+                        <iframe 
+                            src="${exercise.videoUrl}" 
+                            frameborder="0" 
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>`;
+            } else {
+                return `<div class="add-video-container"><button class="btn btn-info btn-small" onclick="editExerciseVideo('${exercise.id}')">➕ Add Video</button></div>`;
+            }
+        }
+
         function renderExercises() {
             const container = document.getElementById('exercises-container');
             
@@ -707,21 +740,12 @@
                             <div class="exercise-title editable-field" onclick="editExerciseName('${exercise.id}')" title="Click to edit">
                                 ${escapeHtml(exercise.name)}<span class="edit-icon">✏️</span>
                             </div>
-                            ${exercise.bodyParts ? `<div class="exercise-body-parts editable-field" onclick="editExerciseBodyParts('${exercise.id}')" title="Click to edit">${escapeHtml(exercise.bodyParts)}<span class="edit-icon">✏️</span></div>` : '<div class="exercise-body-parts editable-field" onclick="editExerciseBodyParts(\'${exercise.id}\')" title="Click to add body parts"><em>Add body parts</em><span class="edit-icon">✏️</span></div>'}
+                            ${renderBodyPartsField(exercise)}
                         </div>
                         <button class="btn btn-danger btn-small" onclick="deleteExercise('${exercise.id}')">🗑️ Delete</button>
                     </div>
                     
-                    ${exercise.videoUrl ? `
-                        <div class="video-container">
-                            <iframe 
-                                src="${exercise.videoUrl}" 
-                                frameborder="0" 
-                                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                            </iframe>
-                        </div>
-                    ` : '<div style="margin-bottom: 10px;"><button class="btn btn-info btn-small" onclick="editExerciseVideo(\'${exercise.id}\')">➕ Add Video</button></div>'}
+                    ${renderVideoSection(exercise)}
                     
                     <div class="sets-container">
                         ${exercise.sets.map((set, index) => `
@@ -764,6 +788,16 @@
             return text.toString().replace(/[&<>"']/g, m => map[m]);
         }
 
+        function generateExportFilename(title, seconds) {
+            const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const now = new Date();
+            const date = now.toISOString().split('T')[0];
+            const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+            const datetime = `${date}_${time}`;
+            const duration = formatDuration(seconds);
+            return `${sanitizedTitle}_${datetime}_${duration}.json`;
+        }
+
         function exportWorkout() {
             if (exercises.length === 0) {
                 alert('No exercises to export. Add some exercises first!');
@@ -783,12 +817,7 @@
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            
-            // Create filename with workout title, datetime, and duration
-            const sanitizedTitle = workoutTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const datetime = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + new Date().toTimeString().split(' ')[0].replace(/:/g, '-');
-            const duration = formatDuration(timerSeconds);
-            link.download = `${sanitizedTitle}_${datetime}_${duration}.json`;
+            link.download = generateExportFilename(workoutTitle, timerSeconds);
             
             document.body.appendChild(link);
             link.click();
