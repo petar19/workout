@@ -441,7 +441,7 @@
             }
 
             const exercise = {
-                id: Date.now(),
+                id: Date.now() + Math.random(), // Use timestamp + random to avoid collisions
                 name: name,
                 videoUrl: getYouTubeEmbedUrl(videoUrl),
                 bodyParts: bodyParts,
@@ -521,7 +521,7 @@
                             <iframe 
                                 src="${exercise.videoUrl}" 
                                 frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                 allowfullscreen>
                             </iframe>
                         </div>
@@ -533,12 +533,14 @@
                                 <span class="set-label">Set ${index + 1}</span>
                                 <input 
                                     type="text" 
+                                    inputmode="decimal"
                                     class="set-input" 
                                     placeholder="Weight (lbs/kg)" 
                                     value="${escapeHtml(set.weight)}"
                                     onchange="updateSet(${exercise.id}, ${index}, 'weight', this.value)">
                                 <input 
                                     type="text" 
+                                    inputmode="numeric"
                                     class="set-input" 
                                     placeholder="Reps" 
                                     value="${escapeHtml(set.reps)}"
