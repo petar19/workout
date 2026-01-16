@@ -359,23 +359,6 @@
             flex-wrap: wrap;
         }
 
-        .editable-field {
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background 0.2s ease;
-        }
-
-        .editable-field:hover {
-            background: #e2e8f0;
-        }
-
-        .edit-icon {
-            margin-left: 8px;
-            font-size: 0.8em;
-            color: #718096;
-        }
-
         .video-collapsed {
             display: none;
         }
@@ -1074,9 +1057,6 @@
                     exercise.name = name;
                     exercise.videoUrl = getYouTubeEmbedUrl(videoUrl);
                     exercise.bodyParts = bodyParts;
-                    saveToLocalStorage();
-                    renderExercises();
-                    initializeSortable();
                 }
             } else {
                 // Add new exercise
@@ -1092,12 +1072,15 @@
                 };
 
                 exercises.push(exercise);
-                saveToLocalStorage();
-                renderExercises();
-                initializeSortable();
             }
 
+            // Close modal first to avoid Sortable error
             closeExerciseModal();
+            
+            // Then save and re-render
+            saveToLocalStorage();
+            renderExercises();
+            initializeSortable();
         }
 
         function setupAutocomplete() {
@@ -1240,9 +1223,9 @@
 
         function renderBodyPartsField(exercise) {
             if (exercise.bodyParts) {
-                return `<div class="exercise-body-parts editable-field" onclick="editExercise('${exercise.id}')" title="Click to edit">${escapeHtml(exercise.bodyParts)}<span class="edit-icon">✏️</span></div>`;
+                return `<div class="exercise-body-parts">${escapeHtml(exercise.bodyParts)}</div>`;
             } else {
-                return `<div class="exercise-body-parts editable-field" onclick="editExercise('${exercise.id}')" title="Click to add body parts"><em>Add body parts</em><span class="edit-icon">✏️</span></div>`;
+                return `<div class="exercise-body-parts"><em>Add body parts</em></div>`;
             }
         }
 
@@ -1351,8 +1334,8 @@
                         <div style="display: flex; align-items: center; flex: 1;">
                             <span class="drag-handle">⋮⋮</span>
                             <div>
-                                <div class="exercise-title editable-field" onclick="editExercise('${exercise.id}')" title="Click to edit">
-                                    ${escapeHtml(exercise.name)}<span class="edit-icon">✏️</span>
+                                <div class="exercise-title">
+                                    ${escapeHtml(exercise.name)}
                                 </div>
                                 ${renderBodyPartsField(exercise)}
                             </div>
