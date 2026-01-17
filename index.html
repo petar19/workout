@@ -1287,10 +1287,14 @@
             document.getElementById('exercise-setup').value = exercise.setup || '';
             document.getElementById('exercise-notes').value = exercise.notes || '';
             
-            // Hide bulk mode toggle when editing
+            // Hide bulk mode toggle when editing and clear bulk fields
+            document.getElementById('bulk-mode-toggle').checked = false;
             document.getElementById('bulk-mode-toggle-container').style.display = 'none';
             document.getElementById('single-mode-fields').style.display = 'block';
             document.getElementById('bulk-mode-fields').style.display = 'none';
+            document.getElementById('bulk-exercise-names').value = '';
+            document.getElementById('bulk-exercise-videos').value = '';
+            document.getElementById('bulk-exercise-body-parts').value = '';
             
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
@@ -1328,7 +1332,8 @@
         }
 
         function saveExerciseFromModal() {
-            const bulkMode = document.getElementById('bulk-mode-toggle').checked;
+            // Check if we're in bulk mode and not editing
+            const bulkMode = document.getElementById('bulk-mode-toggle').checked && !editingExerciseId;
             
             if (bulkMode) {
                 // Bulk add mode
