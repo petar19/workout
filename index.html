@@ -937,6 +937,7 @@
         let scrollTimeout = null;
         let currentMode = 'workout';
         let importData = null;
+        let autoSaveTimeout = null;
         
         // Exercise data - loaded from JSON file
         let exerciseBodyPartsMap = {};
@@ -1151,22 +1152,29 @@
 
         function autoSaveTemplate() {
             if (currentMode === 'template' && currentWorkoutId !== 'current') {
-                const index = parseInt(currentWorkoutId);
-                if (savedWorkouts[index] && savedWorkouts[index].isTemplate) {
-                    workoutTitle = document.getElementById('workout-title').value.trim() || 'My Template';
-                    
-                    const templateData = {
-                        workoutTitle: workoutTitle,
-                        exercises: exercises,
-                        timerSeconds: 0,
-                        savedAt: new Date().toISOString(),
-                        isTemplate: true
-                    };
-                    
-                    savedWorkouts[index] = templateData;
-                    saveSavedWorkouts();
-                    updateWorkoutSelector();
+                // Debounce auto-save to avoid excessive operations
+                if (autoSaveTimeout) {
+                    clearTimeout(autoSaveTimeout);
                 }
+                
+                autoSaveTimeout = setTimeout(() => {
+                    const index = parseInt(currentWorkoutId);
+                    if (savedWorkouts[index] && savedWorkouts[index].isTemplate) {
+                        workoutTitle = document.getElementById('workout-title').value.trim() || 'My Template';
+                        
+                        const templateData = {
+                            workoutTitle: workoutTitle,
+                            exercises: exercises,
+                            timerSeconds: 0,
+                            savedAt: new Date().toISOString(),
+                            isTemplate: true
+                        };
+                        
+                        savedWorkouts[index] = templateData;
+                        saveSavedWorkouts();
+                        updateWorkoutSelector();
+                    }
+                }, 500); // 500ms debounce
             }
         }
 
@@ -1382,14 +1390,25 @@
             input.setSelectionRange(0, 99999);
             
             try {
-                document.execCommand('copy');
-                alert('Link copied to clipboard!');
-            } catch (err) {
                 navigator.clipboard.writeText(input.value).then(() => {
                     alert('Link copied to clipboard!');
                 }).catch(() => {
-                    alert('Failed to copy. Please copy manually.');
+                    // Fallback to deprecated method
+                    try {
+                        document.execCommand('copy');
+                        alert('Link copied to clipboard!');
+                    } catch (err) {
+                        alert('Failed to copy. Please copy manually.');
+                    }
                 });
+            } catch (err) {
+                // Fallback for browsers that don't support clipboard API
+                try {
+                    document.execCommand('copy');
+                    alert('Link copied to clipboard!');
+                } catch (err) {
+                    alert('Failed to copy. Please copy manually.');
+                }
             }
         }
 
@@ -1403,9 +1422,26 @@
             
             if (dataParam) {
                 try {
+                    // Validate base64 format
+                    if (!/^[A-Za-z0-9+/=]+$/.test(dataParam)) {
+                        throw new Error('Invalid base64 format');
+                    }
+                    
                     const decoded = JSON.parse(decodeURIComponent(atob(dataParam)));
                     
-                    if (Array.isArray(decoded) && decoded.length > 0) {
+                    // Validate it's an array
+                    if (!Array.isArray(decoded)) {
+                        throw new Error('Invalid data format: expected array');
+                    }
+                    
+                    // Validate each item has required fields
+                    for (const item of decoded) {
+                        if (!item.workoutTitle || !Array.isArray(item.exercises)) {
+                            throw new Error('Invalid item structure');
+                        }
+                    }
+                    
+                    if (decoded.length > 0) {
                         importData = decoded;
                         showImportDialog();
                     }
@@ -1487,9 +1523,10 @@
             }
             
             itemsToImport.forEach(item => {
-                // Check if already exists
+                // Check if already exists (case-insensitive)
                 const existing = savedWorkouts.findIndex(w => 
-                    w.workoutTitle === item.workoutTitle && w.isTemplate === item.isTemplate
+                    w.workoutTitle.toLowerCase() === item.workoutTitle.toLowerCase() && 
+                    w.isTemplate === item.isTemplate
                 );
                 
                 if (existing !== -1) {
@@ -2752,6 +2789,13 @@
             dropdown.classList.remove('active');
         }
 
+        function closeDropdownById(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.classList.remove('active');
+            }
+        }
+
         // Auto-fill body parts for all exercises that don't have them
         function autoFillAllBodyParts() {
             let filledCount = 0;
@@ -2847,23 +2891,19 @@
                 removeAutocomplete();
             }
             
-            // Close dropdown when clicking outside
-            const dropdown = document.getElementById('import-export-dropdown');
-            if (dropdown && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
+            // Close dropdowns when clicking outside
+            const dropdowns = [
+                'import-export-dropdown',
+                'share-dropdown',
+                'new-template-dropdown'
+            ];
             
-            // Close share dropdown when clicking outside
-            const shareDropdown = document.getElementById('share-dropdown');
-            if (shareDropdown && !shareDropdown.contains(e.target)) {
-                shareDropdown.classList.remove('active');
-            }
-            
-            // Close new template dropdown when clicking outside
-            const newTemplateDropdown = document.getElementById('new-template-dropdown');
-            if (newTemplateDropdown && !newTemplateDropdown.contains(e.target)) {
-                newTemplateDropdown.classList.remove('active');
-            }
+            dropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown && !dropdown.contains(e.target)) {
+                    closeDropdownById(dropdownId);
+                }
+            });
         });
 
         // Scroll to top functionality
