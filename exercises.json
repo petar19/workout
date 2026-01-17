@@ -1,107 +1,124 @@
 {
   "Bench Press": "Chest, Triceps, Shoulders",
-  "Squat": "Quadriceps, Glutes, Hamstrings, Core",
-  "Deadlift": "Back, Glutes, Hamstrings, Core",
-  "Overhead Press": "Shoulders, Triceps, Core",
-  "Barbell Row": "Back, Biceps, Shoulders",
-  "Pull-ups": "Back, Biceps, Core",
-  "Chin-ups": "Back, Biceps, Core",
-  "Dips": "Chest, Triceps, Shoulders",
-  "Push-ups": "Chest, Triceps, Shoulders, Core",
-  "Lunges": "Quadriceps, Glutes, Hamstrings",
-  "Leg Press": "Quadriceps, Glutes, Hamstrings",
-  "Leg Curl": "Hamstrings",
-  "Leg Extension": "Quadriceps",
-  "Calf Raises": "Calves",
-  "Romanian Deadlift": "Hamstrings, Glutes, Back",
-  "Front Squat": "Quadriceps, Glutes, Core",
+  "Potisak s klupe": "Prsa, Triceps, Ramena",
+
+  "Flat Dumbbell Bench Press": "Chest, Triceps, Shoulders",
+  "Ravni potisak bučicama": "Prsa, Triceps, Ramena",
+
   "Incline Bench Press": "Upper Chest, Triceps, Shoulders",
+  "Kosi potisak s klupe": "Gornja prsa, Triceps, Ramena",
+
+  "Incline Dumbbell Bench Press": "Upper Chest, Triceps, Shoulders",
+  "Kosi potisak bučicama": "Gornja prsa, Triceps, Ramena",
+
   "Decline Bench Press": "Lower Chest, Triceps, Shoulders",
-  "Dumbbell Fly": "Chest, Shoulders",
-  "Cable Crossover": "Chest, Shoulders",
-  "Lat Pulldown": "Back, Biceps",
-  "Seated Row": "Back, Biceps, Shoulders",
-  "T-Bar Row": "Back, Biceps, Shoulders",
-  "Face Pulls": "Rear Delts, Upper Back",
-  "Lateral Raises": "Shoulders",
-  "Front Raises": "Shoulders",
-  "Rear Delt Fly": "Rear Delts, Upper Back",
-  "Shrugs": "Traps, Upper Back",
-  "Bicep Curls": "Biceps",
-  "Hammer Curls": "Biceps, Forearms",
-  "Preacher Curls": "Biceps",
-  "Tricep Pushdowns": "Triceps",
-  "Skull Crushers": "Triceps",
+  "Donji potisak s klupe": "Donja prsa, Triceps, Ramena",
+
+  "Decline Dumbbell Bench Press": "Lower Chest, Triceps, Shoulders",
+  "Donji potisak bučicama": "Donja prsa, Triceps, Ramena",
+
+  "Dumbbell Floor Press": "Chest, Triceps, Shoulders",
+  "Potisak bučicama s poda": "Prsa, Triceps, Ramena",
+
   "Close-Grip Bench Press": "Triceps, Chest, Shoulders",
-  "French Press": "Triceps",
-  "Concentration Curls": "Biceps",
-  "Arnold Press": "Shoulders, Triceps",
-  "Bulgarian Split Squat": "Quadriceps, Glutes, Hamstrings",
-  "Goblet Squat": "Quadriceps, Glutes, Core",
-  "Sumo Deadlift": "Glutes, Hamstrings, Back, Inner Thighs",
-  "Hip Thrust": "Glutes, Hamstrings",
-  "Good Mornings": "Hamstrings, Glutes, Back",
-  "Plank": "Core, Shoulders",
-  "Side Plank": "Obliques, Core",
-  "Russian Twists": "Obliques, Core",
-  "Bicycle Crunches": "Abs, Obliques",
-  "Hanging Leg Raises": "Abs, Hip Flexors",
-  "Cable Crunches": "Abs",
-  "Ab Wheel Rollout": "Abs, Core",
-  "Mountain Climbers": "Core, Shoulders, Legs",
-  "Burpees": "Full Body",
-  "Box Jumps": "Legs, Glutes, Calves",
-  "Jump Rope": "Calves, Shoulders, Cardio",
-  "Battle Ropes": "Shoulders, Core, Cardio",
-  "Farmer's Walk": "Forearms, Traps, Core",
-  "Kettlebell Swings": "Glutes, Hamstrings, Core, Shoulders",
-  "Turkish Get-Up": "Full Body, Core, Shoulders",
-  "Clean and Press": "Full Body, Shoulders, Legs",
-  "Snatch": "Full Body, Shoulders, Legs",
-  "Power Clean": "Full Body, Shoulders, Legs",
-  "Muscle-Up": "Back, Chest, Triceps, Core",
-  "Handstand Push-ups": "Shoulders, Triceps, Core",
-  "Pistol Squat": "Quadriceps, Glutes, Core",
-  "Nordic Curls": "Hamstrings, Core",
-  "Glute Ham Raise": "Hamstrings, Glutes",
-  "Back Extension": "Lower Back, Glutes, Hamstrings",
-  "Reverse Hyper": "Glutes, Hamstrings, Lower Back",
-  "Chest Supported Row": "Back, Biceps",
-  "Pendlay Row": "Back, Biceps, Core",
-  "Bent Over Row": "Back, Biceps, Core",
-  "One Arm Row": "Back, Biceps",
-  "Cable Row": "Back, Biceps",
-  "Machine Chest Press": "Chest, Triceps, Shoulders",
-  "Machine Shoulder Press": "Shoulders, Triceps",
-  "Pec Deck": "Chest",
-  "Machine Fly": "Chest",
-  "Leg Press Calf Raise": "Calves",
-  "Seated Calf Raise": "Calves",
+  "Uski potisak s klupe": "Triceps, Prsa, Ramena",
+
+  "Squat": "Quadriceps, Glutes, Hamstrings, Core",
+  "Čučanj": "Kvadricepsi, Gluteusi, Zadnja loža, Core",
+
+  "Front Squat": "Quadriceps, Glutes, Core",
+  "Prednji čučanj": "Kvadricepsi, Gluteusi, Core",
+
   "Hack Squat": "Quadriceps, Glutes",
-  "Smith Machine Squat": "Quadriceps, Glutes, Hamstrings",
+  "Hack čučanj": "Kvadricepsi, Gluteusi",
+
   "Safety Bar Squat": "Quadriceps, Glutes, Core",
+  "Čučanj sa safety šipkom": "Kvadricepsi, Gluteusi, Core",
+
   "Pause Squat": "Quadriceps, Glutes, Hamstrings",
-  "Tempo Squat": "Quadriceps, Glutes, Hamstrings",
+  "Pauzirani čučanj": "Kvadricepsi, Gluteusi, Zadnja loža",
+
+  "Deadlift": "Back, Glutes, Hamstrings, Core",
+  "Mrtvo dizanje": "Leđa, Gluteusi, Zadnja loža, Core",
+
+  "Romanian Deadlift": "Hamstrings, Glutes, Back",
+  "Rumunjsko mrtvo dizanje": "Zadnja loža, Gluteusi, Leđa",
+
+  "Trap Bar Deadlift": "Quadriceps, Glutes, Hamstrings, Back",
+  "Mrtvo dizanje s trap šipkom": "Kvadricepsi, Gluteusi, Zadnja loža, Leđa",
+
+  "Rack Pull": "Back, Glutes, Hamstrings",
+  "Rack pull": "Leđa, Gluteusi, Zadnja loža",
+
+  "Hip Thrust": "Glutes, Hamstrings",
+  "Potisak kukovima": "Gluteusi, Zadnja loža",
+
+  "Pull-ups": "Back, Biceps, Core",
+  "Zgibovi": "Leđa, Biceps, Core",
+
   "Wide Grip Pull-up": "Back, Biceps",
-  "Neutral Grip Pull-up": "Back, Biceps",
-  "Assisted Pull-up": "Back, Biceps",
-  "Band Pull Apart": "Rear Delts, Upper Back",
-  "Cable Pull Through": "Glutes, Hamstrings",
-  "Reverse Lunge": "Quadriceps, Glutes, Hamstrings",
-  "Walking Lunge": "Quadriceps, Glutes, Hamstrings",
-  "Step-ups": "Quadriceps, Glutes",
-  "Box Squat": "Quadriceps, Glutes, Hamstrings",
-  "Zercher Squat": "Quadriceps, Glutes, Core",
-  "Overhead Squat": "Quadriceps, Glutes, Core, Shoulders",
-  "Thruster": "Legs, Shoulders, Core",
-  "Wall Balls": "Legs, Shoulders, Core",
-  "Medicine Ball Slams": "Core, Shoulders",
-  "Sled Push": "Legs, Glutes, Core",
-  "Sled Pull": "Legs, Back, Core",
-  "Tire Flips": "Full Body",
-  "Rope Climbs": "Back, Biceps, Core",
-  "Ring Dips": "Chest, Triceps, Shoulders, Core",
-  "Ring Rows": "Back, Biceps, Core",
-  "L-Sit": "Core, Hip Flexors",
-  "Hollow Body Hold": "Core"
+  "Zgibovi širokim hvatom": "Leđa, Biceps",
+
+  "Barbell Row": "Back, Biceps, Shoulders",
+  "Veslanje šipkom": "Leđa, Biceps, Ramena",
+
+  "Pendlay Row": "Back, Biceps, Core",
+  "Pendlay veslanje": "Leđa, Biceps, Core",
+
+  "Inverted Row": "Back, Biceps, Core",
+  "Australski zgibovi": "Leđa, Biceps, Core",
+
+  "Overhead Press": "Shoulders, Triceps, Core",
+  "Potisak iznad glave": "Ramena, Triceps, Core",
+
+  "Seated Dumbbell Shoulder Press": "Shoulders, Triceps",
+  "Sjedeći potisak bučicama za ramena": "Ramena, Triceps",
+
+  "Push Press": "Shoulders, Triceps, Legs, Core",
+  "Potisak s potiskom nogu": "Ramena, Triceps, Noge, Core",
+
+  "Lateral Raises": "Shoulders",
+  "Bočno podizanje bučica": "Ramena",
+
+  "Cable Lateral Raise": "Shoulders",
+  "Bočno podizanje na sajli": "Ramena",
+
+  "Upright Row": "Shoulders, Traps",
+  "Uspravno veslanje": "Ramena, Trapez",
+
+  "Bicep Curls": "Biceps",
+  "Biceps pregib": "Biceps",
+
+  "Incline Dumbbell Curl": "Biceps",
+  "Kosi biceps pregib bučicama": "Biceps",
+
+  "Hammer Curls": "Biceps, Forearms",
+  "Hammer pregib": "Biceps, Podlaktice",
+
+  "Zottman Curl": "Biceps, Forearms",
+  "Zottman pregib": "Biceps, Podlaktice",
+
+  "Tricep Pushdowns": "Triceps",
+  "Triceps potisak na sajli": "Triceps",
+
+  "Skull Crushers": "Triceps",
+  "Francuski potisak": "Triceps",
+
+  "Plank": "Core, Shoulders",
+  "Plank izdržaj": "Core, Ramena",
+
+  "Side Plank": "Obliques, Core",
+  "Bočni plank": "Kosi trbušni, Core",
+
+  "Hanging Leg Raises": "Abs, Hip Flexors",
+  "Podizanje nogu u visu": "Trbuh, Pregibači kuka",
+
+  "Farmer's Walk": "Forearms, Traps, Core",
+  "Farmersko hodanje": "Podlaktice, Trapez, Core",
+
+  "Kettlebell Swings": "Glutes, Hamstrings, Core, Shoulders",
+  "Kettlebell swing": "Gluteusi, Zadnja loža, Core, Ramena",
+
+  "Turkish Get-Up": "Full Body, Core, Shoulders",
+  "Tursko ustajanje": "Cijelo tijelo, Core, Ramena"
 }
