@@ -479,6 +479,58 @@
             border-color: #cbd5e0;
         }
 
+        .template-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+        }
+
+        .template-item {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .template-item:last-child {
+            border-bottom: none;
+        }
+
+        .template-item:hover {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding-left: 11px;
+        }
+
+        .template-item.selected {
+            background: #e6f0ff;
+            border-left: 4px solid #667eea;
+            padding-left: 11px;
+        }
+
+        .template-item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .template-item-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            display: flex;
+            gap: 15px;
+        }
+
+        .template-item-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .scroll-to-top {
             position: fixed;
             bottom: 30px;
@@ -670,8 +722,8 @@
             <div class="modal-header" id="template-modal-header">Start from Template</div>
             <div class="form-group">
                 <label class="form-label">Select a Template</label>
-                <select id="template-selector" class="form-input" size="10" style="height: 300px;">
-                </select>
+                <div id="template-list" class="template-list">
+                </div>
             </div>
             <div class="modal-actions" id="template-modal-actions">
                 <button class="btn btn-primary" id="template-load-btn" onclick="loadTemplate()">🎯 Load</button>
@@ -1055,17 +1107,42 @@
                 return;
             }
 
-            const selector = document.getElementById('template-selector');
-            selector.innerHTML = '';
+            const listContainer = document.getElementById('template-list');
+            listContainer.innerHTML = '';
             
             templates.forEach((template, index) => {
-                const option = document.createElement('option');
                 // Store the actual index in savedWorkouts for later retrieval
                 const actualIndex = savedWorkouts.findIndex(w => w === template);
-                option.value = actualIndex;
+                
                 const exerciseCount = template.exercises ? template.exercises.length : 0;
-                option.textContent = `${template.workoutTitle} (${exerciseCount} exercises, ${new Date(template.savedAt).toLocaleDateString()})`;
-                selector.appendChild(option);
+                const totalSets = template.exercises ? template.exercises.reduce((sum, ex) => sum + (ex.sets ? ex.sets.length : 0), 0) : 0;
+                
+                // Remove " (Template)" suffix from display name
+                const displayName = template.workoutTitle.replace(' (Template)', '');
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'template-item';
+                itemDiv.dataset.templateIndex = actualIndex;
+                
+                itemDiv.innerHTML = `
+                    <div class="template-item-name">${escapeHtml(displayName)}</div>
+                    <div class="template-item-meta">
+                        <span>📅 ${new Date(template.savedAt).toLocaleDateString()}</span>
+                        <span>🏋️ ${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}</span>
+                        <span>📊 ${totalSets} set${totalSets !== 1 ? 's' : ''}</span>
+                    </div>
+                `;
+                
+                itemDiv.addEventListener('click', function() {
+                    // Remove selected class from all items
+                    document.querySelectorAll('.template-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    // Add selected class to clicked item
+                    this.classList.add('selected');
+                });
+                
+                listContainer.appendChild(itemDiv);
             });
 
             // Set modal to "Manage Templates" mode with all three buttons (Load, Edit, Delete)
@@ -1078,11 +1155,18 @@
             document.getElementById('template-selector-modal').classList.remove('active');
         }
 
+        function getSelectedTemplateIndex() {
+            const selectedItem = document.querySelector('.template-item.selected');
+            if (!selectedItem) {
+                return null;
+            }
+            return parseInt(selectedItem.dataset.templateIndex);
+        }
+
         function deleteSelectedTemplate() {
-            const selector = document.getElementById('template-selector');
-            const selectedIndex = parseInt(selector.value);
+            const selectedIndex = getSelectedTemplateIndex();
             
-            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+            if (selectedIndex === null || isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
                 alert('Please select a template to delete');
                 return;
             }
@@ -1105,10 +1189,9 @@
         }
         
         function editTemplate() {
-            const selector = document.getElementById('template-selector');
-            const selectedIndex = parseInt(selector.value);
+            const selectedIndex = getSelectedTemplateIndex();
             
-            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+            if (selectedIndex === null || isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
                 alert('Please select a template');
                 return;
             }
@@ -1172,10 +1255,9 @@
         }
 
         function loadTemplate() {
-            const selector = document.getElementById('template-selector');
-            const selectedIndex = parseInt(selector.value);
+            const selectedIndex = getSelectedTemplateIndex();
             
-            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+            if (selectedIndex === null || isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
                 alert('Please select a template');
                 return;
             }
