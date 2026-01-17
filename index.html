@@ -212,6 +212,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 40px;
         }
 
         .modal.active {
@@ -697,39 +698,39 @@
             <div id="single-mode-fields">
                 <div class="form-group">
                     <label class="form-label">Exercise Name *</label>
-                    <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required>
+                    <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label class="form-label">YouTube Video URL (optional)</label>
-                    <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=...">
+                    <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=..." autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Body Parts Worked (optional)</label>
-                    <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders">
+                    <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders" autocomplete="off">
                     <button class="btn btn-info btn-small" onclick="autoDetermineBodyParts()" style="margin-top: 8px; width: 100%;">🔍 Auto-Determine Body Parts</button>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Setup Details (optional)</label>
-                    <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;"></textarea>
+                    <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Notes/Description (optional)</label>
-                    <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;"></textarea>
+                    <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
             </div>
             <div id="bulk-mode-fields" style="display: none;">
                 <div class="form-group">
                     <label class="form-label">Exercise Names (one per line) *</label>
-                    <textarea id="bulk-exercise-names" class="form-input" placeholder="Bench Press&#10;Squat&#10;Deadlift" rows="5" style="resize: vertical;"></textarea>
+                    <textarea id="bulk-exercise-names" class="form-input" placeholder="Bench Press&#10;Squat&#10;Deadlift" rows="5" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">YouTube Video URLs (one per line, optional)</label>
-                    <textarea id="bulk-exercise-videos" class="form-input" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..." rows="5" style="resize: vertical;"></textarea>
+                    <textarea id="bulk-exercise-videos" class="form-input" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..." rows="5" style="resize: vertical;" autocomplete="off"></textarea>
                     <small style="color: #718096; display: block; margin-top: 4px;">First URL matches first exercise, second URL matches second exercise, etc.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Body Parts Worked (optional)</label>
-                    <textarea id="bulk-exercise-body-parts" class="form-input" placeholder="Chest, Triceps, Shoulders&#10;Quadriceps, Glutes, Hamstrings&#10;OR enter one line to apply to all exercises" rows="5" style="resize: vertical;"></textarea>
+                    <textarea id="bulk-exercise-body-parts" class="form-input" placeholder="Chest, Triceps, Shoulders&#10;Quadriceps, Glutes, Hamstrings&#10;OR enter one line to apply to all exercises" rows="5" style="resize: vertical;" autocomplete="off"></textarea>
                     <small style="color: #718096; display: block; margin-top: 4px;">If one line, applies to all exercises. Otherwise, matches line by line.</small>
                 </div>
             </div>
@@ -2288,14 +2289,16 @@
 
         // Close modal when clicking outside
         document.getElementById('add-exercise-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'add-exercise-modal') {
+            // Only close if clicking directly on the modal background, not on the modal-content or its children
+            if (e.target === e.currentTarget) {
                 closeExerciseModal();
             }
         });
 
         // Close template modal when clicking outside
         document.getElementById('template-selector-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'template-selector-modal') {
+            // Only close if clicking directly on the modal background, not on the modal-content or its children
+            if (e.target === e.currentTarget) {
                 closeTemplateSelector();
             }
         });
