@@ -1,0 +1,124 @@
+{
+  "Bench Press": "Chest, Triceps, Shoulders",
+  "Potisak s klupe": "Prsa, Triceps, Ramena",
+
+  "Flat Dumbbell Bench Press": "Chest, Triceps, Shoulders",
+  "Ravni potisak bučicama": "Prsa, Triceps, Ramena",
+
+  "Incline Bench Press": "Upper Chest, Triceps, Shoulders",
+  "Kosi potisak s klupe": "Gornja prsa, Triceps, Ramena",
+
+  "Incline Dumbbell Bench Press": "Upper Chest, Triceps, Shoulders",
+  "Kosi potisak bučicama": "Gornja prsa, Triceps, Ramena",
+
+  "Decline Bench Press": "Lower Chest, Triceps, Shoulders",
+  "Donji potisak s klupe": "Donja prsa, Triceps, Ramena",
+
+  "Decline Dumbbell Bench Press": "Lower Chest, Triceps, Shoulders",
+  "Donji potisak bučicama": "Donja prsa, Triceps, Ramena",
+
+  "Dumbbell Floor Press": "Chest, Triceps, Shoulders",
+  "Potisak bučicama s poda": "Prsa, Triceps, Ramena",
+
+  "Close-Grip Bench Press": "Triceps, Chest, Shoulders",
+  "Uski potisak s klupe": "Triceps, Prsa, Ramena",
+
+  "Squat": "Quadriceps, Glutes, Hamstrings, Core",
+  "Čučanj": "Kvadricepsi, Gluteusi, Zadnja loža, Core",
+
+  "Front Squat": "Quadriceps, Glutes, Core",
+  "Prednji čučanj": "Kvadricepsi, Gluteusi, Core",
+
+  "Hack Squat": "Quadriceps, Glutes",
+  "Hack čučanj": "Kvadricepsi, Gluteusi",
+
+  "Safety Bar Squat": "Quadriceps, Glutes, Core",
+  "Čučanj sa safety šipkom": "Kvadricepsi, Gluteusi, Core",
+
+  "Pause Squat": "Quadriceps, Glutes, Hamstrings",
+  "Pauzirani čučanj": "Kvadricepsi, Gluteusi, Zadnja loža",
+
+  "Deadlift": "Back, Glutes, Hamstrings, Core",
+  "Mrtvo dizanje": "Leđa, Gluteusi, Zadnja loža, Core",
+
+  "Romanian Deadlift": "Hamstrings, Glutes, Back",
+  "Rumunjsko mrtvo dizanje": "Zadnja loža, Gluteusi, Leđa",
+
+  "Trap Bar Deadlift": "Quadriceps, Glutes, Hamstrings, Back",
+  "Mrtvo dizanje s trap šipkom": "Kvadricepsi, Gluteusi, Zadnja loža, Leđa",
+
+  "Rack Pull": "Back, Glutes, Hamstrings",
+  "Rack pull": "Leđa, Gluteusi, Zadnja loža",
+
+  "Hip Thrust": "Glutes, Hamstrings",
+  "Potisak kukovima": "Gluteusi, Zadnja loža",
+
+  "Pull-ups": "Back, Biceps, Core",
+  "Zgibovi": "Leđa, Biceps, Core",
+
+  "Wide Grip Pull-up": "Back, Biceps",
+  "Zgibovi širokim hvatom": "Leđa, Biceps",
+
+  "Barbell Row": "Back, Biceps, Shoulders",
+  "Veslanje šipkom": "Leđa, Biceps, Ramena",
+
+  "Pendlay Row": "Back, Biceps, Core",
+  "Pendlay veslanje": "Leđa, Biceps, Core",
+
+  "Inverted Row": "Back, Biceps, Core",
+  "Australski zgibovi": "Leđa, Biceps, Core",
+
+  "Overhead Press": "Shoulders, Triceps, Core",
+  "Potisak iznad glave": "Ramena, Triceps, Core",
+
+  "Seated Dumbbell Shoulder Press": "Shoulders, Triceps",
+  "Sjedeći potisak bučicama za ramena": "Ramena, Triceps",
+
+  "Push Press": "Shoulders, Triceps, Legs, Core",
+  "Potisak s potiskom nogu": "Ramena, Triceps, Noge, Core",
+
+  "Lateral Raises": "Shoulders",
+  "Bočno podizanje bučica": "Ramena",
+
+  "Cable Lateral Raise": "Shoulders",
+  "Bočno podizanje na sajli": "Ramena",
+
+  "Upright Row": "Shoulders, Traps",
+  "Uspravno veslanje": "Ramena, Trapez",
+
+  "Bicep Curls": "Biceps",
+  "Biceps pregib": "Biceps",
+
+  "Incline Dumbbell Curl": "Biceps",
+  "Kosi biceps pregib bučicama": "Biceps",
+
+  "Hammer Curls": "Biceps, Forearms",
+  "Hammer pregib": "Biceps, Podlaktice",
+
+  "Zottman Curl": "Biceps, Forearms",
+  "Zottman pregib": "Biceps, Podlaktice",
+
+  "Tricep Pushdowns": "Triceps",
+  "Triceps potisak na sajli": "Triceps",
+
+  "Skull Crushers": "Triceps",
+  "Francuski potisak": "Triceps",
+
+  "Plank": "Core, Shoulders",
+  "Plank izdržaj": "Core, Ramena",
+
+  "Side Plank": "Obliques, Core",
+  "Bočni plank": "Kosi trbušni, Core",
+
+  "Hanging Leg Raises": "Abs, Hip Flexors",
+  "Podizanje nogu u visu": "Trbuh, Pregibači kuka",
+
+  "Farmer's Walk": "Forearms, Traps, Core",
+  "Farmersko hodanje": "Podlaktice, Trapez, Core",
+
+  "Kettlebell Swings": "Glutes, Hamstrings, Core, Shoulders",
+  "Kettlebell swing": "Gluteusi, Zadnja loža, Core, Ramena",
+
+  "Turkish Get-Up": "Full Body, Core, Shoulders",
+  "Tursko ustajanje": "Cijelo tijelo, Core, Ramena"
+}

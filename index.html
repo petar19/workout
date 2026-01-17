@@ -342,6 +342,37 @@
             padding: 20px;
             margin-bottom: 20px;
             text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .timer-container.sticky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin-bottom: 0;
+            border-radius: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .timer-spacer {
+            height: 0;
+            transition: height 0.3s ease;
+        }
+
+        .timer-spacer.active {
+            height: 130px;
         }
 
         .timer-display {
@@ -483,6 +514,38 @@
             justify-content: center;
         }
 
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            border: none;
+            border-radius: 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dropdown-content button:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .scroll-to-top {
                 bottom: 20px;
@@ -552,7 +615,7 @@
         </div>
         
         <!-- Timer -->
-        <div class="timer-container">
+        <div class="timer-container" id="timer-container">
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
                 <button class="btn btn-success btn-small" id="play-btn" onclick="startTimer()">▶️ Play</button>
@@ -560,6 +623,7 @@
                 <button class="btn btn-info btn-small" onclick="resetTimer()">🔄 Reset</button>
             </div>
         </div>
+        <div class="timer-spacer" id="timer-spacer"></div>
         
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
@@ -568,10 +632,16 @@
             <button class="btn btn-primary" onclick="showTemplateSelector()">🎯 Start from Template</button>
             <button class="btn btn-danger" onclick="resetWorkout()">🔄 Reset Workout</button>
             <button class="btn btn-info" onclick="resetAllValues()">⚡ Reset All Values</button>
-            <button class="btn btn-success" onclick="exportWorkout()">📥 Export Workout</button>
-            <button class="btn btn-info" onclick="importWorkout()">📤 Import Workout</button>
-            <button class="btn btn-success" onclick="exportMultipleWorkouts()">📦 Export Multiple (ZIP)</button>
-            <button class="btn btn-info" onclick="importZipWorkouts()">📦 Import ZIP</button>
+            <button class="btn btn-info" onclick="autoFillAllBodyParts()">🤖 Auto-Fill All Body Parts</button>
+            <div class="dropdown" id="import-export-dropdown">
+                <button class="btn btn-success" onclick="toggleDropdown()">📦 Import/Export ▼</button>
+                <div class="dropdown-content" id="dropdown-content">
+                    <button class="btn btn-success" onclick="exportWorkout(); closeDropdown()">📥 Export Workout</button>
+                    <button class="btn btn-info" onclick="importWorkout(); closeDropdown()">📤 Import Workout</button>
+                    <button class="btn btn-success" onclick="exportMultipleWorkouts(); closeDropdown()">📦 Export Multiple (ZIP)</button>
+                    <button class="btn btn-info" onclick="importZipWorkouts(); closeDropdown()">📦 Import ZIP</button>
+                </div>
+            </div>
             <button class="btn btn-info" id="toggle-all-videos-btn" onclick="toggleAllVideos()">📺 Collapse All Videos</button>
         </div>
 
@@ -612,26 +682,50 @@
     <div id="add-exercise-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modal-header-text">Add New Exercise</div>
-            <div class="form-group">
-                <label class="form-label">Exercise Name *</label>
-                <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required>
+            <div class="form-group" id="bulk-mode-toggle-container">
+                <label class="form-label">
+                    <input type="checkbox" id="bulk-mode-toggle" onchange="toggleBulkMode()"> 
+                    Bulk Add Mode (add multiple exercises at once)
+                </label>
             </div>
-            <div class="form-group">
-                <label class="form-label">YouTube Video URL (optional)</label>
-                <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=...">
+            <div id="single-mode-fields">
+                <div class="form-group">
+                    <label class="form-label">Exercise Name *</label>
+                    <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">YouTube Video URL (optional)</label>
+                    <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Body Parts Worked (optional)</label>
+                    <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders">
+                    <button class="btn btn-info btn-small" onclick="autoDetermineBodyParts()" style="margin-top: 8px; width: 100%;">🔍 Auto-Determine Body Parts</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Setup Details (optional)</label>
+                    <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes/Description (optional)</label>
+                    <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;"></textarea>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Body Parts Worked (optional)</label>
-                <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders">
-                <button class="btn btn-info btn-small" onclick="autoDetermineBodyParts()" style="margin-top: 8px; width: 100%;">🔍 Auto-Determine Body Parts</button>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Setup Details (optional)</label>
-                <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Notes/Description (optional)</label>
-                <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;"></textarea>
+            <div id="bulk-mode-fields" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Exercise Names (one per line) *</label>
+                    <textarea id="bulk-exercise-names" class="form-input" placeholder="Bench Press&#10;Squat&#10;Deadlift" rows="5" style="resize: vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">YouTube Video URLs (one per line, optional)</label>
+                    <textarea id="bulk-exercise-videos" class="form-input" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..." rows="5" style="resize: vertical;"></textarea>
+                    <small style="color: #718096; display: block; margin-top: 4px;">First URL matches first exercise, second URL matches second exercise, etc.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Body Parts Worked (optional)</label>
+                    <textarea id="bulk-exercise-body-parts" class="form-input" placeholder="Chest, Triceps, Shoulders&#10;Quadriceps, Glutes, Hamstrings&#10;OR enter one line to apply to all exercises" rows="5" style="resize: vertical;"></textarea>
+                    <small style="color: #718096; display: block; margin-top: 4px;">If one line, applies to all exercises. Otherwise, matches line by line.</small>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" id="modal-submit-btn" onclick="saveExerciseFromModal()">Add Exercise</button>
@@ -654,146 +748,28 @@
         let editingExerciseId = null; // Track if we're editing an exercise
         let lastScrollY = 0;
         let scrollTimeout = null;
-
-        // Top 100 exercises list
-        const top100Exercises = [
-            "Bench Press", "Squat", "Deadlift", "Overhead Press", "Barbell Row",
-            "Pull-ups", "Chin-ups", "Dips", "Push-ups", "Lunges",
-            "Leg Press", "Leg Curl", "Leg Extension", "Calf Raises", "Romanian Deadlift",
-            "Front Squat", "Incline Bench Press", "Decline Bench Press", "Dumbbell Fly",
-            "Cable Crossover", "Lat Pulldown", "Seated Row", "T-Bar Row", "Face Pulls",
-            "Lateral Raises", "Front Raises", "Rear Delt Fly", "Shrugs", "Bicep Curls",
-            "Hammer Curls", "Preacher Curls", "Tricep Pushdowns", "Skull Crushers",
-            "Close-Grip Bench Press", "French Press", "Concentration Curls", "Arnold Press",
-            "Bulgarian Split Squat", "Goblet Squat", "Sumo Deadlift", "Hip Thrust",
-            "Good Mornings", "Plank", "Side Plank", "Russian Twists", "Bicycle Crunches",
-            "Hanging Leg Raises", "Cable Crunches", "Ab Wheel Rollout", "Mountain Climbers",
-            "Burpees", "Box Jumps", "Jump Rope", "Battle Ropes", "Farmer's Walk",
-            "Kettlebell Swings", "Turkish Get-Up", "Clean and Press", "Snatch",
-            "Power Clean", "Muscle-Up", "Handstand Push-ups", "Pistol Squat",
-            "Nordic Curls", "Glute Ham Raise", "Back Extension", "Reverse Hyper",
-            "Chest Supported Row", "Pendlay Row", "Bent Over Row", "One Arm Row",
-            "Cable Row", "Machine Chest Press", "Machine Shoulder Press", "Pec Deck",
-            "Machine Fly", "Leg Press Calf Raise", "Seated Calf Raise", "Hack Squat",
-            "Smith Machine Squat", "Safety Bar Squat", "Pause Squat", "Tempo Squat",
-            "Wide Grip Pull-up", "Neutral Grip Pull-up", "Assisted Pull-up",
-            "Band Pull Apart", "Cable Pull Through", "Reverse Lunge", "Walking Lunge",
-            "Step-ups", "Box Squat", "Zercher Squat", "Overhead Squat", "Thruster",
-            "Wall Balls", "Medicine Ball Slams", "Sled Push", "Sled Pull", "Tire Flips",
-            "Rope Climbs", "Ring Dips", "Ring Rows", "L-Sit", "Hollow Body Hold"
-        ];
-
-        // Exercise to body parts mapping
-        const exerciseBodyPartsMap = {
-            "Bench Press": "Chest, Triceps, Shoulders",
-            "Squat": "Quadriceps, Glutes, Hamstrings, Core",
-            "Deadlift": "Back, Glutes, Hamstrings, Core",
-            "Overhead Press": "Shoulders, Triceps, Core",
-            "Barbell Row": "Back, Biceps, Shoulders",
-            "Pull-ups": "Back, Biceps, Core",
-            "Chin-ups": "Back, Biceps, Core",
-            "Dips": "Chest, Triceps, Shoulders",
-            "Push-ups": "Chest, Triceps, Shoulders, Core",
-            "Lunges": "Quadriceps, Glutes, Hamstrings",
-            "Leg Press": "Quadriceps, Glutes, Hamstrings",
-            "Leg Curl": "Hamstrings",
-            "Leg Extension": "Quadriceps",
-            "Calf Raises": "Calves",
-            "Romanian Deadlift": "Hamstrings, Glutes, Back",
-            "Front Squat": "Quadriceps, Glutes, Core",
-            "Incline Bench Press": "Upper Chest, Triceps, Shoulders",
-            "Decline Bench Press": "Lower Chest, Triceps, Shoulders",
-            "Dumbbell Fly": "Chest, Shoulders",
-            "Cable Crossover": "Chest, Shoulders",
-            "Lat Pulldown": "Back, Biceps",
-            "Seated Row": "Back, Biceps, Shoulders",
-            "T-Bar Row": "Back, Biceps, Shoulders",
-            "Face Pulls": "Rear Delts, Upper Back",
-            "Lateral Raises": "Shoulders",
-            "Front Raises": "Shoulders",
-            "Rear Delt Fly": "Rear Delts, Upper Back",
-            "Shrugs": "Traps, Upper Back",
-            "Bicep Curls": "Biceps",
-            "Hammer Curls": "Biceps, Forearms",
-            "Preacher Curls": "Biceps",
-            "Tricep Pushdowns": "Triceps",
-            "Skull Crushers": "Triceps",
-            "Close-Grip Bench Press": "Triceps, Chest, Shoulders",
-            "French Press": "Triceps",
-            "Concentration Curls": "Biceps",
-            "Arnold Press": "Shoulders, Triceps",
-            "Bulgarian Split Squat": "Quadriceps, Glutes, Hamstrings",
-            "Goblet Squat": "Quadriceps, Glutes, Core",
-            "Sumo Deadlift": "Glutes, Hamstrings, Back, Inner Thighs",
-            "Hip Thrust": "Glutes, Hamstrings",
-            "Good Mornings": "Hamstrings, Glutes, Back",
-            "Plank": "Core, Shoulders",
-            "Side Plank": "Obliques, Core",
-            "Russian Twists": "Obliques, Core",
-            "Bicycle Crunches": "Abs, Obliques",
-            "Hanging Leg Raises": "Abs, Hip Flexors",
-            "Cable Crunches": "Abs",
-            "Ab Wheel Rollout": "Abs, Core",
-            "Mountain Climbers": "Core, Shoulders, Legs",
-            "Burpees": "Full Body",
-            "Box Jumps": "Legs, Glutes, Calves",
-            "Jump Rope": "Calves, Shoulders, Cardio",
-            "Battle Ropes": "Shoulders, Core, Cardio",
-            "Farmer's Walk": "Forearms, Traps, Core",
-            "Kettlebell Swings": "Glutes, Hamstrings, Core, Shoulders",
-            "Turkish Get-Up": "Full Body, Core, Shoulders",
-            "Clean and Press": "Full Body, Shoulders, Legs",
-            "Snatch": "Full Body, Shoulders, Legs",
-            "Power Clean": "Full Body, Shoulders, Legs",
-            "Muscle-Up": "Back, Chest, Triceps, Core",
-            "Handstand Push-ups": "Shoulders, Triceps, Core",
-            "Pistol Squat": "Quadriceps, Glutes, Core",
-            "Nordic Curls": "Hamstrings, Core",
-            "Glute Ham Raise": "Hamstrings, Glutes",
-            "Back Extension": "Lower Back, Glutes, Hamstrings",
-            "Reverse Hyper": "Glutes, Hamstrings, Lower Back",
-            "Chest Supported Row": "Back, Biceps",
-            "Pendlay Row": "Back, Biceps, Core",
-            "Bent Over Row": "Back, Biceps, Core",
-            "One Arm Row": "Back, Biceps",
-            "Cable Row": "Back, Biceps",
-            "Machine Chest Press": "Chest, Triceps, Shoulders",
-            "Machine Shoulder Press": "Shoulders, Triceps",
-            "Pec Deck": "Chest",
-            "Machine Fly": "Chest",
-            "Leg Press Calf Raise": "Calves",
-            "Seated Calf Raise": "Calves",
-            "Hack Squat": "Quadriceps, Glutes",
-            "Smith Machine Squat": "Quadriceps, Glutes, Hamstrings",
-            "Safety Bar Squat": "Quadriceps, Glutes, Core",
-            "Pause Squat": "Quadriceps, Glutes, Hamstrings",
-            "Tempo Squat": "Quadriceps, Glutes, Hamstrings",
-            "Wide Grip Pull-up": "Back, Biceps",
-            "Neutral Grip Pull-up": "Back, Biceps",
-            "Assisted Pull-up": "Back, Biceps",
-            "Band Pull Apart": "Rear Delts, Upper Back",
-            "Cable Pull Through": "Glutes, Hamstrings",
-            "Reverse Lunge": "Quadriceps, Glutes, Hamstrings",
-            "Walking Lunge": "Quadriceps, Glutes, Hamstrings",
-            "Step-ups": "Quadriceps, Glutes",
-            "Box Squat": "Quadriceps, Glutes, Hamstrings",
-            "Zercher Squat": "Quadriceps, Glutes, Core",
-            "Overhead Squat": "Quadriceps, Glutes, Core, Shoulders",
-            "Thruster": "Legs, Shoulders, Core",
-            "Wall Balls": "Legs, Shoulders, Core",
-            "Medicine Ball Slams": "Core, Shoulders",
-            "Sled Push": "Legs, Glutes, Core",
-            "Sled Pull": "Legs, Back, Core",
-            "Tire Flips": "Full Body",
-            "Rope Climbs": "Back, Biceps, Core",
-            "Ring Dips": "Chest, Triceps, Shoulders, Core",
-            "Ring Rows": "Back, Biceps, Core",
-            "L-Sit": "Core, Hip Flexors",
-            "Hollow Body Hold": "Core"
-        };
+        
+        // Exercise data - loaded from JSON file
+        let exerciseBodyPartsMap = {};
+        let exerciseNames = []; // Extracted keys from the map
 
         // Load exercises from localStorage on page load
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Load exercise data from JSON file
+            try {
+                const response = await fetch('exercises.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to load exercises.json: ${response.status}`);
+                }
+                exerciseBodyPartsMap = await response.json();
+                exerciseNames = Object.keys(exerciseBodyPartsMap).sort();
+            } catch (error) {
+                console.error('Error loading exercises.json:', error);
+                // Fallback to empty map if file can't be loaded
+                exerciseBodyPartsMap = {};
+                exerciseNames = [];
+            }
+            
             loadSavedWorkouts();
             loadFromLocalStorage();
             loadUsedExerciseNames();
@@ -1185,6 +1161,11 @@
                 timerRunning = true;
                 document.getElementById('play-btn').style.display = 'none';
                 document.getElementById('pause-btn').style.display = 'inline-block';
+                
+                // Make timer sticky
+                document.getElementById('timer-container').classList.add('sticky');
+                document.getElementById('timer-spacer').classList.add('active');
+                
                 timerInterval = setInterval(() => {
                     timerSeconds++;
                     updateTimerDisplay();
@@ -1201,6 +1182,11 @@
                 timerRunning = false;
                 document.getElementById('play-btn').style.display = 'inline-block';
                 document.getElementById('pause-btn').style.display = 'none';
+                
+                // Remove sticky state
+                document.getElementById('timer-container').classList.remove('sticky');
+                document.getElementById('timer-spacer').classList.remove('active');
+                
                 if (timerInterval) {
                     clearInterval(timerInterval);
                     timerInterval = null;
@@ -1241,6 +1227,16 @@
             document.getElementById('exercise-body-parts').value = '';
             document.getElementById('exercise-setup').value = '';
             document.getElementById('exercise-notes').value = '';
+            
+            // Reset bulk mode
+            document.getElementById('bulk-mode-toggle').checked = false;
+            document.getElementById('bulk-mode-toggle-container').style.display = 'block';
+            document.getElementById('single-mode-fields').style.display = 'block';
+            document.getElementById('bulk-mode-fields').style.display = 'none';
+            document.getElementById('bulk-exercise-names').value = '';
+            document.getElementById('bulk-exercise-videos').value = '';
+            document.getElementById('bulk-exercise-body-parts').value = '';
+            
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
         }
@@ -1294,6 +1290,15 @@
             document.getElementById('exercise-setup').value = exercise.setup || '';
             document.getElementById('exercise-notes').value = exercise.notes || '';
             
+            // Hide bulk mode toggle when editing and clear bulk fields
+            document.getElementById('bulk-mode-toggle').checked = false;
+            document.getElementById('bulk-mode-toggle-container').style.display = 'none';
+            document.getElementById('single-mode-fields').style.display = 'block';
+            document.getElementById('bulk-mode-fields').style.display = 'none';
+            document.getElementById('bulk-exercise-names').value = '';
+            document.getElementById('bulk-exercise-videos').value = '';
+            document.getElementById('bulk-exercise-body-parts').value = '';
+            
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
         }
@@ -1305,11 +1310,86 @@
             document.getElementById('exercise-body-parts').value = '';
             document.getElementById('exercise-setup').value = '';
             document.getElementById('exercise-notes').value = '';
+            document.getElementById('bulk-exercise-names').value = '';
+            document.getElementById('bulk-exercise-videos').value = '';
+            document.getElementById('bulk-exercise-body-parts').value = '';
             editingExerciseId = null;
             removeAutocomplete();
         }
 
+        function toggleBulkMode() {
+            const bulkMode = document.getElementById('bulk-mode-toggle').checked;
+            const singleFields = document.getElementById('single-mode-fields');
+            const bulkFields = document.getElementById('bulk-mode-fields');
+            const submitBtn = document.getElementById('modal-submit-btn');
+            
+            if (bulkMode) {
+                singleFields.style.display = 'none';
+                bulkFields.style.display = 'block';
+                submitBtn.textContent = 'Add Exercises';
+            } else {
+                singleFields.style.display = 'block';
+                bulkFields.style.display = 'none';
+                submitBtn.textContent = 'Add Exercise';
+            }
+        }
+
         function saveExerciseFromModal() {
+            // Check if we're in bulk mode and not editing
+            const bulkMode = document.getElementById('bulk-mode-toggle').checked && !editingExerciseId;
+            
+            if (bulkMode) {
+                // Bulk add mode
+                const namesText = document.getElementById('bulk-exercise-names').value.trim();
+                const videosText = document.getElementById('bulk-exercise-videos').value.trim();
+                const bodyPartsText = document.getElementById('bulk-exercise-body-parts').value.trim();
+                
+                if (!namesText) {
+                    alert('Please enter at least one exercise name');
+                    return;
+                }
+                
+                const names = namesText.split('\n').map(n => n.trim()).filter(n => n);
+                const videos = videosText.split('\n').map(v => v.trim()).filter(v => v);
+                const bodyPartsList = bodyPartsText.split('\n').map(b => b.trim()).filter(b => b);
+                
+                // If only one body part line, apply to all
+                const singleBodyPart = bodyPartsList.length === 1 ? bodyPartsList[0] : null;
+                
+                names.forEach((name, index) => {
+                    // Match video URL by index (first URL to first exercise, etc.)
+                    const videoUrl = videos[index] || null;
+                    
+                    // Match body parts line by line, or use single body part for all
+                    const bodyParts = singleBodyPart || (bodyPartsList[index] || '');
+                    
+                    // Save exercise name to used names
+                    usedExerciseNames.add(name);
+                    
+                    const exercise = {
+                        id: `ex_${Date.now()}_${index}_${Math.floor(Math.random() * 10000)}`,
+                        name: name,
+                        videoUrl: getYouTubeEmbedUrl(videoUrl),
+                        bodyParts: bodyParts,
+                        setup: '',
+                        notes: '',
+                        videoCollapsed: false,
+                        sets: [{ weight: '', reps: '' }]
+                    };
+                    
+                    exercises.push(exercise);
+                });
+                
+                saveUsedExerciseNames();
+                closeExerciseModal();
+                saveToLocalStorage();
+                renderExercises();
+                initializeSortable();
+                
+                return;
+            }
+            
+            // Single add/edit mode
             const name = document.getElementById('exercise-name').value.trim();
             const videoUrl = document.getElementById('exercise-video').value.trim();
             const bodyParts = document.getElementById('exercise-body-parts').value.trim();
@@ -1366,8 +1446,8 @@
             const input = document.getElementById('exercise-name');
             let currentFocus = -1;
 
-            // Combine top 100 exercises with user's previously used names
-            const allExercises = [...new Set([...top100Exercises, ...Array.from(usedExerciseNames)])].sort();
+            // Combine exercise names from JSON with user's previously used names
+            const allExercises = [...new Set([...exerciseNames, ...Array.from(usedExerciseNames)])].sort();
 
             input.addEventListener('input', function(e) {
                 removeAutocomplete();
@@ -1914,6 +1994,59 @@
             input.click();
         }
 
+        // Dropdown toggle functions
+        function toggleDropdown() {
+            const dropdown = document.getElementById('import-export-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function closeDropdown() {
+            const dropdown = document.getElementById('import-export-dropdown');
+            dropdown.classList.remove('active');
+        }
+
+        // Auto-fill body parts for all exercises that don't have them
+        function autoFillAllBodyParts() {
+            let filledCount = 0;
+            
+            exercises.forEach(exercise => {
+                // Only fill if body parts are empty
+                if (!exercise.bodyParts || exercise.bodyParts.trim() === '') {
+                    // Try to find body parts in the mapping
+                    const lowerExerciseName = exercise.name.toLowerCase();
+                    
+                    // Try exact match first
+                    for (const [key, value] of Object.entries(exerciseBodyPartsMap)) {
+                        if (key.toLowerCase() === lowerExerciseName) {
+                            exercise.bodyParts = value;
+                            filledCount++;
+                            break;
+                        }
+                    }
+                    
+                    // If still empty, try partial match
+                    if (!exercise.bodyParts || exercise.bodyParts.trim() === '') {
+                        for (const [key, value] of Object.entries(exerciseBodyPartsMap)) {
+                            const lowerKey = key.toLowerCase();
+                            if (lowerExerciseName.length > 5 && lowerKey.includes(lowerExerciseName)) {
+                                exercise.bodyParts = value;
+                                filledCount++;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            if (filledCount > 0) {
+                saveToLocalStorage();
+                renderExercises();
+                alert(`Auto-filled body parts for ${filledCount} exercise(s)!`);
+            } else {
+                alert('No exercises found that need body parts filled.');
+            }
+        }
+
         // Close modal when clicking outside
         document.getElementById('add-exercise-modal').addEventListener('click', (e) => {
             if (e.target.id === 'add-exercise-modal') {
@@ -1932,6 +2065,12 @@
         document.addEventListener('click', function(e) {
             if (e.target.id !== 'exercise-name') {
                 removeAutocomplete();
+            }
+            
+            // Close dropdown when clicking outside
+            const dropdown = document.getElementById('import-export-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
             }
         });
 
