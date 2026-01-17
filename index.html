@@ -719,7 +719,7 @@
                 <div class="form-group">
                     <label class="form-label">YouTube Video URLs (one per line, optional)</label>
                     <textarea id="bulk-exercise-videos" class="form-input" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..." rows="5" style="resize: vertical;"></textarea>
-                    <small style="color: #718096; display: block; margin-top: 4px;">First URL will be matched with first exercise name, etc. Extra URLs will be ignored.</small>
+                    <small style="color: #718096; display: block; margin-top: 4px;">First URL matches first exercise, second URL matches second exercise, etc.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Body Parts Worked (optional)</label>
@@ -758,6 +758,9 @@
             // Load exercise data from JSON file
             try {
                 const response = await fetch('exercises.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to load exercises.json: ${response.status}`);
+                }
                 exerciseBodyPartsMap = await response.json();
                 exerciseNames = Object.keys(exerciseBodyPartsMap).sort();
             } catch (error) {
@@ -1354,8 +1357,8 @@
                 const singleBodyPart = bodyPartsList.length === 1 ? bodyPartsList[0] : null;
                 
                 names.forEach((name, index) => {
-                    // Match video URL (first URL goes to first exercise, etc.)
-                    const videoUrl = index === 0 && videos.length > 0 ? videos[0] : null;
+                    // Match video URL by index (first URL to first exercise, etc.)
+                    const videoUrl = videos[index] || null;
                     
                     // Match body parts line by line, or use single body part for all
                     const bodyParts = singleBodyPart || (bodyPartsList[index] || '');
@@ -1364,7 +1367,7 @@
                     usedExerciseNames.add(name);
                     
                     const exercise = {
-                        id: `ex_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+                        id: `ex_${Date.now()}_${index}_${Math.floor(Math.random() * 10000)}`,
                         name: name,
                         videoUrl: getYouTubeEmbedUrl(videoUrl),
                         bodyParts: bodyParts,
