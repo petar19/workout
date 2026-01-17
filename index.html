@@ -966,16 +966,42 @@
 
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
             
-            const templateTitle = workoutTitle + ' (Template)';
+            // Check if we're currently viewing a template
+            let isEditingTemplate = false;
+            let currentTemplateIndex = -1;
+            if (currentWorkoutId !== 'current') {
+                const index = parseInt(currentWorkoutId);
+                if (savedWorkouts[index] && savedWorkouts[index].isTemplate) {
+                    isEditingTemplate = true;
+                    currentTemplateIndex = index;
+                }
+            }
             
-            // Check if a template with the same name already exists
-            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
-            if (existingIndex !== -1) {
-                if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
+            let templateTitle;
+            if (isEditingTemplate) {
+                // Use the current template name without appending " (Template)" again
+                templateTitle = workoutTitle;
+                
+                // Confirm overwrite
+                if (!confirm(`Are you sure you want to overwrite the template "${templateTitle}"?`)) {
                     return;
                 }
+                
                 // Remove the existing template
-                savedWorkouts.splice(existingIndex, 1);
+                savedWorkouts.splice(currentTemplateIndex, 1);
+            } else {
+                // Creating a new template - append " (Template)" if not already there
+                templateTitle = workoutTitle.endsWith(' (Template)') ? workoutTitle : workoutTitle + ' (Template)';
+                
+                // Check if a template with this name already exists
+                const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
+                if (existingIndex !== -1) {
+                    if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
+                        return;
+                    }
+                    // Remove the existing template
+                    savedWorkouts.splice(existingIndex, 1);
+                }
             }
 
             // Create template with exercises but without weight/reps values
