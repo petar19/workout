@@ -752,6 +752,7 @@
         
         // Exercise data - loaded from JSON file
         let exerciseBodyPartsMap = {};
+        let exerciseKeywordsMap = {};
         let exerciseNames = []; // Extracted keys from the map
 
         // Load exercises from localStorage on page load
@@ -769,6 +770,19 @@
                 // Fallback to empty map if file can't be loaded
                 exerciseBodyPartsMap = {};
                 exerciseNames = [];
+            }
+            
+            // Load keyword mapping for fallback matching
+            try {
+                const keywordResponse = await fetch('exercise-keywords.json');
+                if (!keywordResponse.ok) {
+                    throw new Error(`Failed to load exercise-keywords.json: ${keywordResponse.status}`);
+                }
+                exerciseKeywordsMap = await keywordResponse.json();
+            } catch (error) {
+                console.error('Error loading exercise-keywords.json:', error);
+                // Fallback to empty map if file can't be loaded
+                exerciseKeywordsMap = {};
             }
             
             loadSavedWorkouts();
@@ -1273,6 +1287,23 @@
                     document.getElementById('exercise-body-parts').value = value;
                     return;
                 }
+            }
+
+            // Try keyword matching as fallback
+            const matchedKeywords = [];
+            const matchedBodyParts = new Set();
+            
+            for (const [keyword, bodyParts] of Object.entries(exerciseKeywordsMap)) {
+                if (lowerExerciseName.includes(keyword.toLowerCase())) {
+                    matchedKeywords.push(keyword);
+                    // Split body parts and add to set to avoid duplicates
+                    bodyParts.split(',').forEach(part => matchedBodyParts.add(part.trim()));
+                }
+            }
+            
+            if (matchedBodyParts.size > 0) {
+                document.getElementById('exercise-body-parts').value = Array.from(matchedBodyParts).join(', ');
+                return;
             }
 
             alert('Could not automatically determine body parts for this exercise. Please enter them manually.');
@@ -2147,6 +2178,23 @@
                                 filledCount++;
                                 break;
                             }
+                        }
+                    }
+                    
+                    // If still empty, try keyword matching
+                    if (!exercise.bodyParts || exercise.bodyParts.trim() === '') {
+                        const matchedBodyParts = new Set();
+                        
+                        for (const [keyword, bodyParts] of Object.entries(exerciseKeywordsMap)) {
+                            if (lowerExerciseName.includes(keyword.toLowerCase())) {
+                                // Split body parts and add to set to avoid duplicates
+                                bodyParts.split(',').forEach(part => matchedBodyParts.add(part.trim()));
+                            }
+                        }
+                        
+                        if (matchedBodyParts.size > 0) {
+                            exercise.bodyParts = Array.from(matchedBodyParts).join(', ');
+                            filledCount++;
                         }
                     }
                 }
