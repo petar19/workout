@@ -1114,8 +1114,8 @@
                 // Store the actual index in savedWorkouts for later retrieval
                 const actualIndex = savedWorkouts.findIndex(w => w === template);
                 
-                const exerciseCount = template.exercises ? template.exercises.length : 0;
-                const totalSets = template.exercises ? template.exercises.reduce((sum, ex) => sum + (ex.sets ? ex.sets.length : 0), 0) : 0;
+                const exerciseCount = template.exercises?.length || 0;
+                const totalSets = template.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0;
                 
                 // Remove " (Template)" suffix from display name
                 const displayName = template.workoutTitle.replace(' (Template)', '');
@@ -1135,9 +1135,8 @@
                 
                 itemDiv.addEventListener('click', function() {
                     // Remove selected class from all items
-                    document.querySelectorAll('.template-item').forEach(item => {
-                        item.classList.remove('selected');
-                    });
+                    const allItems = listContainer.querySelectorAll('.template-item');
+                    allItems.forEach(item => item.classList.remove('selected'));
                     // Add selected class to clicked item
                     this.classList.add('selected');
                 });
@@ -1160,7 +1159,7 @@
             if (!selectedItem) {
                 return null;
             }
-            return parseInt(selectedItem.dataset.templateIndex);
+            return parseInt(selectedItem.dataset.templateIndex, 10);
         }
 
         function deleteSelectedTemplate() {
