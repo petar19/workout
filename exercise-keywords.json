@@ -1,0 +1,113 @@
+{
+  "row": "Back, Traps, Biceps",
+  "veslanje": "Leđa, Trapez, Biceps",
+  
+  "pull": "Back, Biceps",
+  "povlačenje": "Leđa, Biceps",
+  "zgib": "Leđa, Biceps",
+  
+  "press": "Shoulders, Chest, Triceps",
+  "potisak": "Ramena, Prsa, Triceps",
+  
+  "chest": "Chest, Triceps, Shoulders",
+  "prsa": "Prsa, Triceps, Ramena",
+  
+  "shoulder": "Shoulders, Triceps",
+  "ramena": "Ramena, Triceps",
+  
+  "triceps": "Triceps",
+  "tricep": "Triceps",
+  
+  "biceps": "Biceps",
+  "bicep": "Biceps",
+  
+  "curl": "Biceps",
+  "biceps curl": "Biceps",
+  "biceps pregib": "Biceps",
+  
+  "squat": "Quadriceps, Glutes, Hamstrings, Core",
+  "čučanj": "Kvadricepsi, Gluteusi, Zadnja loža, Core",
+  
+  "deadlift": "Back, Glutes, Hamstrings, Core",
+  "mrtvo": "Leđa, Gluteusi, Zadnja loža, Core",
+  
+  "lunge": "Quadriceps, Glutes, Hamstrings",
+  "iskorak": "Kvadricepsi, Gluteusi, Zadnja loža",
+  
+  "leg press": "Quadriceps, Glutes, Hamstrings",
+  "potisak nogama": "Kvadricepsi, Gluteusi, Zadnja loža",
+  
+  "leg extension": "Quadriceps",
+  "opružanje": "Kvadricepsi",
+  
+  "leg curl": "Hamstrings",
+  "hamstring curl": "Hamstrings",
+  "pregib nogu": "Zadnja loža",
+  
+  "calf": "Calves",
+  "list": "Listovi",
+  
+  "lat": "Back, Lats",
+  "latissimus": "Leđa, Latissimus",
+  
+  "fly": "Chest",
+  "razvodenje": "Prsa",
+  
+  "raise": "Shoulders",
+  "podizanje": "Ramena",
+  
+  "delt": "Shoulders",
+  "rame": "Ramena",
+  
+  "back": "Back",
+  "leđa": "Leđa",
+  
+  "core": "Core, Abs",
+  "trbuh": "Core, Trbušnjaci",
+  
+  "abs": "Abs, Core",
+  "trbušnjaci": "Trbušnjaci, Core",
+  
+  "glute": "Glutes",
+  "gluteus": "Gluteusi",
+  
+  "hip": "Glutes, Hip Flexors",
+  "kuk": "Gluteusi, Pregibači kuka",
+  
+  "thrust": "Glutes, Hamstrings",
+  "potisak kukovima": "Gluteusi, Zadnja loža",
+  
+  "dip": "Triceps, Chest, Shoulders",
+  "propadanje": "Triceps, Prsa, Ramena",
+  
+  "pushup": "Chest, Triceps, Shoulders",
+  "sklekovi": "Prsa, Triceps, Ramena",
+  
+  "bench": "Chest, Triceps, Shoulders",
+  "klupa": "Prsa, Triceps, Ramena",
+  
+  "overhead": "Shoulders, Triceps",
+  "iznad glave": "Ramena, Triceps",
+  
+  "lateral": "Shoulders",
+  "bočno": "Ramena",
+  
+  "front": "Front Delts, Core",
+  "prednji": "Prednja ramena, Core",
+  
+  "rear": "Rear Delts, Upper Back",
+  "stražnji": "Stražnja ramena, Gornja leđa",
+  
+  "shrug": "Traps",
+  "sljeganje": "Trapez",
+  
+  "trap": "Traps, Upper Back",
+  "trapez": "Trapez, Gornja leđa",
+  
+  "pullover": "Lats, Chest",
+  
+  "crunch": "Abs",
+  "trbušnjak": "Trbušnjaci",
+  
+  "plank": "Core, Abs"
+}
