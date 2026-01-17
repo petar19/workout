@@ -56,6 +56,105 @@
   "Pull-ups": "Back, Biceps, Core",
   "Zgibovi": "Leđa, Biceps, Core",
 
+  "Machine Chest Press": "Chest, Triceps, Shoulders",
+  "Sprava za potisak prsa": "Prsa, Triceps, Ramena",
+
+  "Incline Machine Chest Press": "Upper Chest, Triceps, Shoulders",
+  "Kosi potisak prsa na spravi": "Gornja prsa, Triceps, Ramena",
+
+  "Decline Machine Chest Press": "Lower Chest, Triceps, Shoulders",
+  "Donji potisak prsa na spravi": "Donja prsa, Triceps, Ramena",
+
+  "Machine Shoulder Press": "Shoulders, Triceps",
+  "Potisak za ramena na spravi": "Ramena, Triceps",
+
+  "Machine Lateral Raise": "Shoulders",
+  "Bočno podizanje na spravi": "Ramena",
+
+  "Pec Deck": "Chest",
+  "Pec deck": "Prsa",
+
+  "Rear Delt Machine Fly": "Rear Delts, Upper Back",
+  "Stražnje rame na spravi": "Stražnja ramena, Gornja leđa",
+
+  "Machine Pullover": "Lats, Chest",
+  "Pullover na spravi": "Latissimus, Prsa",
+
+  "Machine Lat Pulldown": "Back, Biceps",
+  "Lat povlačenje na spravi": "Leđa, Biceps",
+
+  "Close-Grip Machine Pulldown": "Back, Biceps",
+  "Usko lat povlačenje na spravi": "Leđa, Biceps",
+
+  "Machine Seated Row": "Back, Biceps, Shoulders",
+  "Veslanje na spravi": "Leđa, Biceps, Ramena",
+
+  "Hammer Strength Row": "Back, Biceps",
+  "Hammer strength veslanje": "Leđa, Biceps",
+
+  "Assisted Pull-up Machine": "Back, Biceps",
+  "Zgibovi na asistivnoj spravi": "Leđa, Biceps",
+
+  "Machine Bicep Curl": "Biceps",
+  "Biceps pregib na spravi": "Biceps",
+
+  "Machine Preacher Curl": "Biceps",
+  "Preacher pregib na spravi": "Biceps",
+
+  "Machine Tricep Extension": "Triceps",
+  "Triceps ekstenzija na spravi": "Triceps",
+
+  "Machine Dip": "Chest, Triceps, Shoulders",
+  "Dipsevi na spravi": "Prsa, Triceps, Ramena",
+
+  "Leg Press": "Quadriceps, Glutes, Hamstrings",
+  "Potisak nogama na spravi": "Kvadricepsi, Gluteusi, Zadnja loža",
+
+  "Single-Leg Leg Press": "Quadriceps, Glutes, Hamstrings",
+  "Jednonožni leg press": "Kvadricepsi, Gluteusi, Zadnja loža",
+
+  "Hack Squat Machine": "Quadriceps, Glutes",
+  "Hack čučanj na spravi": "Kvadricepsi, Gluteusi",
+
+  "Pendulum Squat Machine": "Quadriceps, Glutes",
+  "Pendulum čučanj na spravi": "Kvadricepsi, Gluteusi",
+
+  "Machine Leg Extension": "Quadriceps",
+  "Ekstenzija nogu na spravi": "Kvadricepsi",
+
+  "Seated Leg Curl Machine": "Hamstrings",
+  "Sjedenje pregib nogu na spravi": "Zadnja loža",
+
+  "Lying Leg Curl Machine": "Hamstrings",
+  "Ležeći pregib nogu na spravi": "Zadnja loža",
+
+  "Standing Leg Curl Machine": "Hamstrings",
+  "Stojeći pregib nogu na spravi": "Zadnja loža",
+
+  "Hip Abductor Machine": "Glutes, Hips",
+  "Abdukcija kukova na spravi": "Gluteusi, Kukovi",
+
+  "Hip Adductor Machine": "Inner Thighs",
+  "Addukcija kukova na spravi": "Unutarnja bedra",
+
+  "Glute Kickback Machine": "Glutes",
+  "Glute kickback sprava": "Gluteusi",
+
+  "Seated Calf Raise Machine": "Calves",
+  "Sjedenje podizanje listova na spravi": "Listovi",
+
+  "Standing Calf Raise Machine": "Calves",
+  "Stojeće podizanje listova na spravi": "Listovi",
+
+  "Ab Crunch Machine": "Abs",
+  "Trbušnjaci na spravi": "Trbuh",
+
+  "Rotary Torso Machine": "Obliques, Core",
+  "Rotacija trupa na spravi": "Kosi trbušni, Core",
+
+  "Back Extension Machine": "Lower Back, Glutes, Hamstrings",
+  "Ekstenzija leđa na spravi": "Donja leđa, Gluteusi, Zadnja loža",
+
   "Wide Grip Pull-up": "Back, Biceps",
   "Zgibovi širokim hvatom": "Leđa, Biceps",
 
