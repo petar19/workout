@@ -1529,9 +1529,9 @@
             
             // Create new listener
             const keydownHandler = function(e) {
-                // Only handle shortcuts in non-bulk mode
+                // Only handle shortcuts in non-bulk mode and when not editing
                 const bulkMode = document.getElementById('bulk-mode-toggle').checked;
-                if (bulkMode) return;
+                if (bulkMode || editingExerciseId) return;
                 
                 // Shift+Enter: Add and continue
                 if (e.shiftKey && e.key === 'Enter') {
