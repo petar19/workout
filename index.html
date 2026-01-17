@@ -628,8 +628,15 @@
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
             <button class="btn btn-success" onclick="saveWorkout()">💾 Save Workout</button>
-            <button class="btn btn-success" onclick="saveAsTemplate()">📋 Save as Template</button>
-            <button class="btn btn-primary" onclick="showTemplateSelector()">🎯 Start from Template</button>
+            <div class="dropdown" id="template-dropdown">
+                <button class="btn btn-success" onclick="toggleTemplateDropdown()">📋 Templates ▼</button>
+                <div class="dropdown-content" id="template-dropdown-content">
+                    <button class="btn btn-success" onclick="saveAsTemplate(); closeTemplateDropdown()">💾 Save as Template</button>
+                    <button class="btn btn-primary" onclick="showTemplateSelector(); closeTemplateDropdown()">🎯 Start from Template</button>
+                    <button class="btn btn-info" onclick="showTemplateEditor(); closeTemplateDropdown()">✏️ Edit Template</button>
+                    <button class="btn btn-danger" onclick="showTemplateDeleter(); closeTemplateDropdown()">🗑️ Delete Template</button>
+                </div>
+            </div>
             <button class="btn btn-danger" onclick="resetWorkout()">🔄 Reset Workout</button>
             <button class="btn btn-info" onclick="resetAllValues()">⚡ Reset All Values</button>
             <button class="btn btn-info" onclick="autoFillAllBodyParts()">🤖 Auto-Fill All Body Parts</button>
@@ -661,15 +668,14 @@
     <!-- Template Selector Modal -->
     <div id="template-selector-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">Start from Template</div>
+            <div class="modal-header" id="template-modal-header">Start from Template</div>
             <div class="form-group">
                 <label class="form-label">Select a Template</label>
                 <select id="template-selector" class="form-input" size="10" style="height: 300px;">
                 </select>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="loadTemplate()">Load Template</button>
-                <button class="btn btn-danger" onclick="deleteSelectedTemplate()">Delete Template</button>
+            <div class="modal-actions" id="template-modal-actions">
+                <button class="btn btn-primary" id="template-primary-btn" onclick="loadTemplate()">Load Template</button>
                 <button class="btn btn-danger" onclick="closeTemplateSelector()">Cancel</button>
             </div>
         </div>
@@ -886,12 +892,14 @@
             const selector = document.getElementById('workout-selector');
             selector.innerHTML = '<option value="current">Current Workout</option>';
             
+            // Only show non-template workouts in the dropdown
             savedWorkouts.forEach((workout, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                const templateIndicator = workout.isTemplate ? ' 📋' : '';
-                option.textContent = `${workout.workoutTitle}${templateIndicator} (${new Date(workout.savedAt).toLocaleDateString()})`;
-                selector.appendChild(option);
+                if (!workout.isTemplate) {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${workout.workoutTitle} (${new Date(workout.savedAt).toLocaleDateString()})`;
+                    selector.appendChild(option);
+                }
             });
 
             if (currentWorkoutId !== 'current') {
@@ -1059,6 +1067,71 @@
                 selector.appendChild(option);
             });
 
+            // Set modal to "Start from Template" mode
+            document.getElementById('template-modal-header').textContent = 'Start from Template';
+            document.getElementById('template-primary-btn').textContent = 'Load Template';
+            document.getElementById('template-primary-btn').onclick = loadTemplate;
+            
+            document.getElementById('template-selector-modal').classList.add('active');
+        }
+        
+        function showTemplateEditor() {
+            // Filter only templates from savedWorkouts
+            const templates = savedWorkouts.filter(workout => workout.isTemplate === true);
+            
+            if (templates.length === 0) {
+                alert('No templates available. Save a workout as a template first!');
+                return;
+            }
+
+            const selector = document.getElementById('template-selector');
+            selector.innerHTML = '';
+            
+            templates.forEach((template, index) => {
+                const option = document.createElement('option');
+                // Store the actual index in savedWorkouts for later retrieval
+                const actualIndex = savedWorkouts.findIndex(w => w === template);
+                option.value = actualIndex;
+                const exerciseCount = template.exercises ? template.exercises.length : 0;
+                option.textContent = `${template.workoutTitle} (${exerciseCount} exercises, ${new Date(template.savedAt).toLocaleDateString()})`;
+                selector.appendChild(option);
+            });
+
+            // Set modal to "Edit Template" mode
+            document.getElementById('template-modal-header').textContent = 'Edit Template';
+            document.getElementById('template-primary-btn').textContent = 'Edit Template';
+            document.getElementById('template-primary-btn').onclick = editTemplate;
+            
+            document.getElementById('template-selector-modal').classList.add('active');
+        }
+        
+        function showTemplateDeleter() {
+            // Filter only templates from savedWorkouts
+            const templates = savedWorkouts.filter(workout => workout.isTemplate === true);
+            
+            if (templates.length === 0) {
+                alert('No templates available.');
+                return;
+            }
+
+            const selector = document.getElementById('template-selector');
+            selector.innerHTML = '';
+            
+            templates.forEach((template, index) => {
+                const option = document.createElement('option');
+                // Store the actual index in savedWorkouts for later retrieval
+                const actualIndex = savedWorkouts.findIndex(w => w === template);
+                option.value = actualIndex;
+                const exerciseCount = template.exercises ? template.exercises.length : 0;
+                option.textContent = `${template.workoutTitle} (${exerciseCount} exercises, ${new Date(template.savedAt).toLocaleDateString()})`;
+                selector.appendChild(option);
+            });
+
+            // Set modal to "Delete Template" mode
+            document.getElementById('template-modal-header').textContent = 'Delete Template';
+            document.getElementById('template-primary-btn').textContent = 'Delete Template';
+            document.getElementById('template-primary-btn').onclick = deleteSelectedTemplate;
+            
             document.getElementById('template-selector-modal').classList.add('active');
         }
 
@@ -1086,10 +1159,40 @@
             saveSavedWorkouts();
             updateWorkoutSelector();
             
-            // Refresh template selector
-            showTemplateSelector();
+            // Close modal after deletion
+            closeTemplateSelector();
             
             alert('Template deleted successfully!');
+        }
+        
+        function editTemplate() {
+            const selector = document.getElementById('template-selector');
+            const selectedIndex = parseInt(selector.value);
+            
+            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+                alert('Please select a template');
+                return;
+            }
+
+            const template = savedWorkouts[selectedIndex];
+            
+            // Close dialog first before destroying sortable
+            closeTemplateSelector();
+
+            // Load template (deep copy to avoid reference issues)
+            exercises = JSON.parse(JSON.stringify(template.exercises || []));
+            workoutTitle = template.workoutTitle;
+            timerSeconds = 0;
+            
+            // Mark that we're editing a template
+            currentWorkoutId = selectedIndex.toString();
+            
+            document.getElementById('workout-title').value = workoutTitle;
+            document.getElementById('workout-selector').value = selectedIndex;
+            pauseTimer();
+            updateTimerDisplay();
+            renderExercises();
+            initializeSortable();
         }
 
         function deleteSelectedWorkout() {
@@ -2175,6 +2278,16 @@
             const dropdown = document.getElementById('import-export-dropdown');
             dropdown.classList.remove('active');
         }
+        
+        function toggleTemplateDropdown() {
+            const dropdown = document.getElementById('template-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function closeTemplateDropdown() {
+            const dropdown = document.getElementById('template-dropdown');
+            dropdown.classList.remove('active');
+        }
 
         // Auto-fill body parts for all exercises that don't have them
         function autoFillAllBodyParts() {
@@ -2259,6 +2372,12 @@
             const dropdown = document.getElementById('import-export-dropdown');
             if (dropdown && !dropdown.contains(e.target)) {
                 dropdown.classList.remove('active');
+            }
+            
+            // Close template dropdown when clicking outside
+            const templateDropdown = document.getElementById('template-dropdown');
+            if (templateDropdown && !templateDropdown.contains(e.target)) {
+                templateDropdown.classList.remove('active');
             }
         });
 
