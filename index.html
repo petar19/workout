@@ -729,6 +729,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" id="modal-submit-btn" onclick="saveExerciseFromModal()">Add Exercise</button>
+                <button class="btn btn-success" id="modal-add-continue-btn" onclick="saveExerciseAndContinue()" style="display: none;">Add & Continue</button>
                 <button class="btn btn-danger" onclick="closeExerciseModal()">Cancel</button>
             </div>
         </div>
@@ -1237,8 +1238,12 @@
             document.getElementById('bulk-exercise-videos').value = '';
             document.getElementById('bulk-exercise-body-parts').value = '';
             
+            // Show "Add & Continue" button for non-bulk mode
+            document.getElementById('modal-add-continue-btn').style.display = 'inline-block';
+            
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
+            setupModalKeyboardShortcuts();
         }
 
         function autoDetermineBodyParts() {
@@ -1299,8 +1304,12 @@
             document.getElementById('bulk-exercise-videos').value = '';
             document.getElementById('bulk-exercise-body-parts').value = '';
             
+            // Hide "Add & Continue" button when editing
+            document.getElementById('modal-add-continue-btn').style.display = 'none';
+            
             document.getElementById('add-exercise-modal').classList.add('active');
             setupAutocomplete();
+            setupModalKeyboardShortcuts();
         }
 
         function closeExerciseModal() {
@@ -1322,15 +1331,18 @@
             const singleFields = document.getElementById('single-mode-fields');
             const bulkFields = document.getElementById('bulk-mode-fields');
             const submitBtn = document.getElementById('modal-submit-btn');
+            const addContinueBtn = document.getElementById('modal-add-continue-btn');
             
             if (bulkMode) {
                 singleFields.style.display = 'none';
                 bulkFields.style.display = 'block';
                 submitBtn.textContent = 'Add Exercises';
+                addContinueBtn.style.display = 'none';
             } else {
                 singleFields.style.display = 'block';
                 bulkFields.style.display = 'none';
                 submitBtn.textContent = 'Add Exercise';
+                addContinueBtn.style.display = 'inline-block';
             }
         }
 
@@ -1441,6 +1453,108 @@
             renderExercises();
             initializeSortable();
         }
+
+        function saveExerciseAndContinue() {
+            // Check if we're in bulk mode - this function is only for single mode
+            const bulkMode = document.getElementById('bulk-mode-toggle').checked && !editingExerciseId;
+            if (bulkMode) {
+                // Should not happen, but just call normal save if it does
+                saveExerciseFromModal();
+                return;
+            }
+            
+            // Single add mode only
+            const name = document.getElementById('exercise-name').value.trim();
+            const videoUrl = document.getElementById('exercise-video').value.trim();
+            const bodyParts = document.getElementById('exercise-body-parts').value.trim();
+            const setup = document.getElementById('exercise-setup').value.trim();
+            const notes = document.getElementById('exercise-notes').value.trim();
+
+            if (!name) {
+                alert('Please enter an exercise name');
+                return;
+            }
+
+            // Save exercise name to used names
+            usedExerciseNames.add(name);
+            saveUsedExerciseNames();
+
+            if (editingExerciseId) {
+                // If editing, just do normal save and close
+                saveExerciseFromModal();
+                return;
+            }
+
+            // Add new exercise
+            const exercise = {
+                id: `ex_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+                name: name,
+                videoUrl: getYouTubeEmbedUrl(videoUrl),
+                bodyParts: bodyParts,
+                setup: setup,
+                notes: notes,
+                videoCollapsed: false,
+                sets: [
+                    { weight: '', reps: '' }
+                ]
+            };
+
+            exercises.push(exercise);
+            
+            // Save and re-render
+            saveToLocalStorage();
+            renderExercises();
+            initializeSortable();
+            
+            // Clear the form but keep modal open
+            document.getElementById('exercise-name').value = '';
+            document.getElementById('exercise-video').value = '';
+            document.getElementById('exercise-body-parts').value = '';
+            document.getElementById('exercise-setup').value = '';
+            document.getElementById('exercise-notes').value = '';
+            
+            // Focus on the exercise name field
+            document.getElementById('exercise-name').focus();
+        }
+
+        function setupModalKeyboardShortcuts() {
+            // Remove any existing keyboard listener for the modal
+            const modal = document.getElementById('add-exercise-modal');
+            const modalContent = modal.querySelector('.modal-content');
+            
+            // Remove old listener if exists
+            if (modalContent._keydownHandler) {
+                modalContent.removeEventListener('keydown', modalContent._keydownHandler);
+            }
+            
+            // Create new listener
+            const keydownHandler = function(e) {
+                // Only handle shortcuts in non-bulk mode
+                const bulkMode = document.getElementById('bulk-mode-toggle').checked;
+                if (bulkMode) return;
+                
+                // Shift+Enter: Add and continue
+                if (e.shiftKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    saveExerciseAndContinue();
+                }
+                // Ctrl+Enter (or Cmd+Enter on Mac): Add and close
+                else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    saveExerciseFromModal();
+                }
+                // Escape: Close dialog
+                else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeExerciseModal();
+                }
+            };
+            
+            // Store handler reference and add listener
+            modalContent._keydownHandler = keydownHandler;
+            modalContent.addEventListener('keydown', keydownHandler);
+        }
+
 
         function setupAutocomplete() {
             const input = document.getElementById('exercise-name');
