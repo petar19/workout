@@ -1421,29 +1421,41 @@
             showMultipleShareUrls(urls);
         }
 
-        function fallbackCopyToClipboard(input) {
-            input.select();
-            input.setSelectionRange(0, 99999);
+        function copyTextToClipboard(text, successMessage) {
+            // Try modern clipboard API first
+            try {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert(successMessage);
+                }).catch(() => {
+                    // Fallback if clipboard API fails
+                    fallbackCopyWithTextarea(text, successMessage);
+                });
+            } catch (err) {
+                // Fallback for older browsers that don't support navigator.clipboard
+                fallbackCopyWithTextarea(text, successMessage);
+            }
+        }
+
+        function fallbackCopyWithTextarea(text, successMessage) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(textarea);
+            textarea.select();
             try {
                 document.execCommand('copy');
-                alert('Link copied to clipboard!');
+                alert(successMessage);
             } catch (err) {
                 alert('Failed to copy. Please copy manually.');
             }
+            document.body.removeChild(textarea);
         }
 
         function copyShareUrl() {
             const input = document.getElementById('share-url-input');
-            
-            try {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    alert('Link copied to clipboard!');
-                }).catch(() => {
-                    fallbackCopyToClipboard(input);
-                });
-            } catch (err) {
-                fallbackCopyToClipboard(input);
-            }
+            copyTextToClipboard(input.value, 'Link copied to clipboard!');
         }
 
         function closeShareDialog() {
@@ -1485,33 +1497,7 @@
 
         function copyShareUrlById(inputId) {
             const input = document.getElementById(inputId);
-            
-            try {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    alert('Link copied to clipboard!');
-                }).catch(() => {
-                    fallbackCopyToClipboard(input);
-                });
-            } catch (err) {
-                fallbackCopyToClipboard(input);
-            }
-        }
-
-        function fallbackCopyTextToClipboard(text, successMessage) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '-9999px';
-            textarea.setAttribute('aria-hidden', 'true');
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                alert(successMessage);
-            } catch (err) {
-                alert('Failed to copy. Please copy manually.');
-            }
-            document.body.removeChild(textarea);
+            copyTextToClipboard(input.value, 'Link copied to clipboard!');
         }
 
         function copyAllShareUrls() {
@@ -1521,16 +1507,7 @@
             const allUrls = urls.join('\n');
             const successMessage = `Copied all ${urls.length} links to clipboard!`;
             
-            try {
-                navigator.clipboard.writeText(allUrls).then(() => {
-                    alert(successMessage);
-                }).catch(() => {
-                    fallbackCopyTextToClipboard(allUrls, successMessage);
-                });
-            } catch (err) {
-                // Fallback for older browsers that don't support navigator.clipboard
-                fallbackCopyTextToClipboard(allUrls, successMessage);
-            }
+            copyTextToClipboard(allUrls, successMessage);
         }
 
         function parseUrlParams() {
