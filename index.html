@@ -913,6 +913,10 @@
                     <label class="form-label">Notes/Description (optional)</label>
                     <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
+                <div class="form-group template-only" id="sets-number-field" style="display: none;">
+                    <label class="form-label">Number of Sets *</label>
+                    <input type="number" id="exercise-sets-number" class="form-input" placeholder="e.g., 3" min="1" value="3" autocomplete="off">
+                </div>
             </div>
             <div id="bulk-mode-fields" style="display: none;">
                 <div class="form-group">
@@ -1145,6 +1149,12 @@
                 el.style.display = mode === 'template' ? '' : 'none';
             });
             
+            // Show/hide sets number field in modal based on mode
+            const setsNumberField = document.getElementById('sets-number-field');
+            if (setsNumberField) {
+                setsNumberField.style.display = mode === 'template' ? '' : 'none';
+            }
+            
             // Pause timer when switching to template mode
             if (mode === 'template' && timerRunning) {
                 pauseTimer();
@@ -1231,7 +1241,7 @@
                 setup: exercise.setup,
                 notes: exercise.notes,
                 videoCollapsed: false,
-                sets: exercise.sets.map(() => ({ weight: '', reps: '' }))
+                setsNumber: exercise.sets.length
             }));
 
             const templateData = {
@@ -1318,7 +1328,7 @@
                 setup: exercise.setup,
                 notes: exercise.notes,
                 videoCollapsed: false,
-                sets: exercise.sets.map(() => ({ weight: '', reps: '' }))
+                setsNumber: exercise.sets.length
             }));
 
             const templateData = {
@@ -1349,7 +1359,12 @@
             currentMode = 'workout';
             switchMode('workout');
             
-            // Copy template exercises with empty values
+            // Copy template exercises and create sets based on setsNumber
+            exercises = exercises.map(exercise => ({
+                ...exercise,
+                sets: Array.from({ length: exercise.setsNumber || 1 }, () => ({ weight: '', reps: '' }))
+            }));
+            
             workoutTitle = document.getElementById('workout-title').value.trim().replace(' (Template)', '');
             document.getElementById('workout-title').value = workoutTitle;
             timerSeconds = 0;
@@ -1862,6 +1877,13 @@
 
             // Load template (deep copy to avoid reference issues)
             exercises = JSON.parse(JSON.stringify(template.exercises || []));
+            
+            // Convert setsNumber to sets array for workout mode
+            exercises = exercises.map(exercise => ({
+                ...exercise,
+                sets: Array.from({ length: exercise.setsNumber || 1 }, () => ({ weight: '', reps: '' }))
+            }));
+            
             workoutTitle = template.workoutTitle.replace(' (Template)', '');
             timerSeconds = 0;
             currentWorkoutId = 'current';
@@ -2064,6 +2086,12 @@
             document.getElementById('exercise-setup').value = exercise.setup || '';
             document.getElementById('exercise-notes').value = exercise.notes || '';
             
+            // Populate setsNumber field in template mode
+            if (currentMode === 'template') {
+                const setsNumber = exercise.setsNumber || (exercise.sets ? exercise.sets.length : 3);
+                document.getElementById('exercise-sets-number').value = setsNumber;
+            }
+            
             // Hide bulk mode toggle when editing and clear bulk fields
             document.getElementById('bulk-mode-toggle').checked = false;
             document.getElementById('bulk-mode-toggle-container').style.display = 'none';
@@ -2154,9 +2182,15 @@
                         bodyParts: bodyParts,
                         setup: '',
                         notes: '',
-                        videoCollapsed: false,
-                        sets: [{ weight: '', reps: '' }]
+                        videoCollapsed: false
                     };
+                    
+                    // In template mode, store setsNumber; in workout mode, store sets array
+                    if (currentMode === 'template') {
+                        exercise.setsNumber = 3; // Default to 3 sets for bulk add in template mode
+                    } else {
+                        exercise.sets = [{ weight: '', reps: '' }];
+                    }
                     
                     exercises.push(exercise);
                 });
@@ -2195,6 +2229,12 @@
                     exercise.bodyParts = bodyParts;
                     exercise.setup = setup;
                     exercise.notes = notes;
+                    
+                    // Update setsNumber in template mode
+                    if (currentMode === 'template') {
+                        const setsNumber = parseInt(document.getElementById('exercise-sets-number').value) || 1;
+                        exercise.setsNumber = Math.max(1, setsNumber);
+                    }
                 }
             } else {
                 // Add new exercise
@@ -2205,11 +2245,16 @@
                     bodyParts: bodyParts,
                     setup: setup,
                     notes: notes,
-                    videoCollapsed: false,
-                    sets: [
-                        { weight: '', reps: '' }
-                    ]
+                    videoCollapsed: false
                 };
+                
+                // In template mode, store setsNumber; in workout mode, store sets array
+                if (currentMode === 'template') {
+                    const setsNumber = parseInt(document.getElementById('exercise-sets-number').value) || 3;
+                    exercise.setsNumber = Math.max(1, setsNumber);
+                } else {
+                    exercise.sets = [{ weight: '', reps: '' }];
+                }
 
                 exercises.push(exercise);
             }
@@ -2262,11 +2307,16 @@
                 bodyParts: bodyParts,
                 setup: setup,
                 notes: notes,
-                videoCollapsed: false,
-                sets: [
-                    { weight: '', reps: '' }
-                ]
+                videoCollapsed: false
             };
+            
+            // In template mode, store setsNumber; in workout mode, store sets array
+            if (currentMode === 'template') {
+                const setsNumber = parseInt(document.getElementById('exercise-sets-number').value) || 3;
+                exercise.setsNumber = Math.max(1, setsNumber);
+            } else {
+                exercise.sets = [{ weight: '', reps: '' }];
+            }
 
             exercises.push(exercise);
             
@@ -2603,6 +2653,24 @@
             container.innerHTML = exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('');
         }
 
+        function renderSetsSection(exercise) {
+            if (currentMode === 'template') {
+                // In template mode, show the number of sets
+                const numSets = exercise.setsNumber || (exercise.sets ? exercise.sets.length : 1);
+                return Array.from({ length: numSets }, (_, index) => `
+                    <div class="set-row">
+                        <span class="set-label">Set ${index + 1}</span>
+                    </div>
+                `).join('');
+            } else {
+                // In workout mode, show the full set inputs
+                if (!exercise.sets || exercise.sets.length === 0) {
+                    exercise.sets = [{ weight: '', reps: '' }];
+                }
+                return exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('');
+            }
+        }
+
         function renderExercises() {
             const container = document.getElementById('exercises-container');
             
@@ -2640,7 +2708,7 @@
                     ${renderSetupAndNotes(exercise)}
                     
                     <div class="sets-container">
-                        ${exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('')}
+                        ${renderSetsSection(exercise)}
                     </div>
                     
                     ${renderExerciseControls(exercise.id)}
