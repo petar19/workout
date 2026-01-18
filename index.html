@@ -1427,15 +1427,15 @@
         }
 
         function copyTextToClipboard(text, successMessage) {
-            // Try modern clipboard API first
-            try {
+            // Check if modern clipboard API is available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
                     alert(successMessage);
                 }).catch(() => {
                     // Fallback if clipboard API fails
                     fallbackCopyWithTextarea(text, successMessage);
                 });
-            } catch (err) {
+            } else {
                 // Fallback for older browsers that don't support navigator.clipboard
                 fallbackCopyWithTextarea(text, successMessage);
             }
