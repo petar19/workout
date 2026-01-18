@@ -1778,10 +1778,10 @@
                     const choice = confirm('Do you want to UPDATE the existing workout?\n\nClick OK to update, or Cancel to save as a new workout.');
                     
                     if (choice) {
-                        // Update existing workout
+                        // Update existing workout (deep copy to avoid reference issues)
                         savedWorkouts[index] = {
                             workoutTitle: savedWorkouts[index].workoutTitle, // Keep original title with timestamp
-                            exercises: exercises,
+                            exercises: JSON.parse(JSON.stringify(exercises)),
                             timerSeconds: timerSeconds,
                             savedAt: new Date().toISOString(),
                             isTemplate: false
@@ -1806,7 +1806,7 @@
 
             const workoutData = {
                 workoutTitle: workoutTitleWithDatetime,
-                exercises: exercises,
+                exercises: JSON.parse(JSON.stringify(exercises)),
                 timerSeconds: timerSeconds,
                 savedAt: new Date().toISOString(),
                 isTemplate: false
