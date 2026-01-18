@@ -1399,23 +1399,30 @@
                 return;
             }
 
+            // Copy template data BEFORE switching modes (deep copy to avoid reference issues)
+            const templateExercises = JSON.parse(JSON.stringify(exercises));
+            const templateTitle = document.getElementById('workout-title').value.trim();
+            
             // Switch to workout mode
             currentMode = 'workout';
             switchMode('workout');
             
-            // Copy template exercises and create sets based on setsNumber
-            exercises = exercises.map(exercise => ({
+            // Apply the copied template data AFTER mode switch
+            // Convert setsNumber to sets array for workout mode
+            exercises = templateExercises.map(exercise => ({
                 ...exercise,
                 sets: Array.from({ length: exercise.setsNumber || 1 }, () => ({ weight: '', reps: '' }))
             }));
             
-            // No need to strip "(Template)" since we don't add it anymore
-            workoutTitle = document.getElementById('workout-title').value.trim();
+            // Copy the template title to the workout
+            workoutTitle = templateTitle;
             document.getElementById('workout-title').value = workoutTitle;
             timerSeconds = 0;
             currentWorkoutId = 'current';
             updateTimerDisplay();
             saveToLocalStorage();
+            renderExercises();
+            initializeSortable();
             
             alert('Workout started from template!');
         }
@@ -2004,22 +2011,24 @@
             // Close dialog first before destroying sortable
             closeTemplateSelector();
 
+            // Store template data before switching modes
+            const templateExercises = JSON.parse(JSON.stringify(template.exercises || []));
+            const templateTitle = template.workoutTitle;
+
             // Switch to workout mode
             if (currentMode !== 'workout') {
                 switchMode('workout');
             }
 
-            // Load template (deep copy to avoid reference issues)
-            exercises = JSON.parse(JSON.stringify(template.exercises || []));
-            
+            // Apply the copied template data AFTER mode switch
             // Convert setsNumber to sets array for workout mode
-            exercises = exercises.map(exercise => ({
+            exercises = templateExercises.map(exercise => ({
                 ...exercise,
                 sets: Array.from({ length: exercise.setsNumber || 1 }, () => ({ weight: '', reps: '' }))
             }));
             
-            // No need to strip "(Template)" since we don't add it anymore
-            workoutTitle = template.workoutTitle;
+            // Copy the template title to the workout
+            workoutTitle = templateTitle;
             timerSeconds = 0;
             currentWorkoutId = 'current';
             
