@@ -1770,6 +1770,34 @@
             
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
             
+            // Check if user is editing a previously saved workout
+            if (currentWorkoutId !== 'current') {
+                const index = parseInt(currentWorkoutId);
+                if (!isNaN(index) && savedWorkouts[index]) {
+                    // Ask user if they want to update or save as new
+                    const choice = confirm('Do you want to UPDATE the existing workout?\n\nClick OK to update, or Cancel to save as a new workout.');
+                    
+                    if (choice) {
+                        // Update existing workout
+                        savedWorkouts[index] = {
+                            workoutTitle: savedWorkouts[index].workoutTitle, // Keep original title with timestamp
+                            exercises: exercises,
+                            timerSeconds: timerSeconds,
+                            savedAt: new Date().toISOString(),
+                            isTemplate: false
+                        };
+                        
+                        saveSavedWorkouts();
+                        saveToLocalStorage();
+                        updateWorkoutSelector();
+                        alert('Workout updated successfully!');
+                        return;
+                    }
+                    // If Cancel clicked, continue to save as new below
+                }
+            }
+            
+            // Save as new workout (original behavior)
             // Append current datetime to workout name
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -1811,6 +1839,45 @@
 
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Template';
             
+            // Check if user is editing a previously saved template
+            if (currentWorkoutId !== 'current') {
+                const index = parseInt(currentWorkoutId);
+                if (!isNaN(index) && savedWorkouts[index] && savedWorkouts[index].isTemplate) {
+                    // Ask user if they want to update or save as new
+                    const choice = confirm('Do you want to UPDATE the existing template?\n\nClick OK to update, or Cancel to save as a new template.');
+                    
+                    if (choice) {
+                        // Update existing template
+                        const templateExercises = exercises.map(exercise => ({
+                            id: exercise.id,
+                            name: exercise.name,
+                            videos: exercise.videos || (exercise.videoUrl ? [{ url: exercise.videoUrl, label: '' }] : []),
+                            bodyParts: exercise.bodyParts,
+                            setup: exercise.setup,
+                            notes: exercise.notes,
+                            videoCollapsed: false,
+                            setsNumber: exercise.setsNumber || (exercise.sets ? exercise.sets.length : 3)
+                        }));
+                        
+                        savedWorkouts[index] = {
+                            workoutTitle: workoutTitle,
+                            exercises: templateExercises,
+                            timerSeconds: 0,
+                            savedAt: new Date().toISOString(),
+                            isTemplate: true
+                        };
+                        
+                        saveSavedWorkouts();
+                        saveToLocalStorage();
+                        updateWorkoutSelector();
+                        alert('Template updated successfully!');
+                        return;
+                    }
+                    // If Cancel clicked, continue to save as new below
+                }
+            }
+            
+            // Save as new template (check for duplicate names)
             // Check if a template with the same name already exists
             const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === workoutTitle && w.isTemplate);
             if (existingIndex !== -1) {
