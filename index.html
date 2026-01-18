@@ -766,8 +766,8 @@
             <input type="text" id="workout-title" class="workout-title-input" placeholder="Enter workout name..." value="My Workout">
         </div>
         
-        <!-- Timer -->
-        <div class="timer-container" id="timer-container">
+        <!-- Timer (hidden in template mode via workout-only class) -->
+        <div class="timer-container workout-only" id="timer-container">
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
                 <button class="btn btn-success btn-small" id="play-btn" onclick="startTimer()">▶️ Play</button>
@@ -775,7 +775,7 @@
                 <button class="btn btn-info btn-small" onclick="resetTimer()">🔄 Reset</button>
             </div>
         </div>
-        <div class="timer-spacer" id="timer-spacer"></div>
+        <div class="timer-spacer workout-only" id="timer-spacer"></div>
         
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
@@ -1145,6 +1145,11 @@
                 el.style.display = mode === 'template' ? '' : 'none';
             });
             
+            // Pause timer when switching to template mode
+            if (mode === 'template' && timerRunning) {
+                pauseTimer();
+            }
+            
             // Update share dropdown button text
             const shareButtons = document.querySelectorAll('#share-dropdown-content .btn-info');
             if (shareButtons.length > 0) {
@@ -1165,6 +1170,11 @@
                     renderExercises();
                     initializeSortable();
                 }
+            } else {
+                // Re-render exercises to update visibility of weight/reps inputs based on mode
+                // This is necessary because template mode hides these inputs even when the data hasn't changed
+                renderExercises();
+                initializeSortable();
             }
         }
 
@@ -1416,29 +1426,41 @@
             showMultipleShareUrls(urls);
         }
 
-        function fallbackCopyToClipboard(input) {
-            input.select();
-            input.setSelectionRange(0, 99999);
+        function copyTextToClipboard(text, successMessage) {
+            // Check if modern clipboard API is available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert(successMessage);
+                }).catch(() => {
+                    // Fallback if clipboard API fails
+                    fallbackCopyWithTextarea(text, successMessage);
+                });
+            } else {
+                // Fallback for older browsers that don't support navigator.clipboard
+                fallbackCopyWithTextarea(text, successMessage);
+            }
+        }
+
+        function fallbackCopyWithTextarea(text, successMessage) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(textarea);
+            textarea.select();
             try {
                 document.execCommand('copy');
-                alert('Link copied to clipboard!');
+                alert(successMessage);
             } catch (err) {
                 alert('Failed to copy. Please copy manually.');
             }
+            document.body.removeChild(textarea);
         }
 
         function copyShareUrl() {
             const input = document.getElementById('share-url-input');
-            
-            try {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    alert('Link copied to clipboard!');
-                }).catch(() => {
-                    fallbackCopyToClipboard(input);
-                });
-            } catch (err) {
-                fallbackCopyToClipboard(input);
-            }
+            copyTextToClipboard(input.value, 'Link copied to clipboard!');
         }
 
         function closeShareDialog() {
@@ -1458,7 +1480,7 @@
             urls.forEach((url, index) => {
                 html += `
                     <div class="share-url-container" style="margin-bottom: 15px;">
-                        <input type="text" class="share-url-input" value="${escapeHtml(url)}" readonly id="share-url-${index}">
+                        <input type="text" class="share-url-input" data-share-url="true" value="${escapeHtml(url)}" readonly id="share-url-${index}">
                         <button class="btn btn-primary" onclick="copyShareUrlById('share-url-${index}')">📋 Copy ${index + 1}</button>
                     </div>`;
             });
@@ -1470,6 +1492,7 @@
                     </small>
                 </div>
                 <div class="modal-actions">
+                    ${urls.length > 1 ? '<button class="btn btn-success" onclick="copyAllShareUrls()">📋 Copy All Links</button>' : ''}
                     <button class="btn btn-danger" onclick="closeShareDialog()">Close</button>
                 </div>`;
             
@@ -1479,16 +1502,17 @@
 
         function copyShareUrlById(inputId) {
             const input = document.getElementById(inputId);
+            copyTextToClipboard(input.value, 'Link copied to clipboard!');
+        }
+
+        function copyAllShareUrls() {
+            // Collect all share URL inputs using data attribute
+            const inputs = document.querySelectorAll('input[data-share-url="true"]');
+            const urls = Array.from(inputs).map(input => input.value);
+            const allUrls = urls.join('\n');
+            const successMessage = `Copied all ${urls.length} links to clipboard!`;
             
-            try {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    alert('Link copied to clipboard!');
-                }).catch(() => {
-                    fallbackCopyToClipboard(input);
-                });
-            } catch (err) {
-                fallbackCopyToClipboard(input);
-            }
+            copyTextToClipboard(allUrls, successMessage);
         }
 
         function parseUrlParams() {
@@ -2514,6 +2538,45 @@
             }
         }
 
+        function renderSetRow(exercise, set, index) {
+            if (currentMode === 'workout') {
+                return `
+                    <div class="set-row">
+                        <span class="set-label">Set ${index + 1}</span>
+                        <input 
+                            type="text" 
+                            inputmode="decimal"
+                            class="set-input" 
+                            placeholder="Weight (lbs/kg)" 
+                            value="${escapeHtml(set.weight)}"
+                            onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
+                        <input 
+                            type="text" 
+                            inputmode="numeric"
+                            class="set-input" 
+                            placeholder="Reps" 
+                            value="${escapeHtml(set.reps)}"
+                            onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
+                        <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
+                    </div>`;
+            } else {
+                return `
+                    <div class="set-row">
+                        <span class="set-label">Set ${index + 1}</span>
+                    </div>`;
+            }
+        }
+
+        function renderExerciseControls(exerciseId) {
+            if (currentMode === 'workout') {
+                return `
+                    <div class="exercise-controls">
+                        <button class="btn btn-primary btn-small" onclick="addSet('${exerciseId}')">➕ Add Set</button>
+                    </div>`;
+            }
+            return '';
+        }
+
         function toggleAllVideos() {
             allVideosCollapsed = !allVideosCollapsed;
             
@@ -2537,26 +2600,7 @@
             const container = document.querySelector(`#exercise-${exerciseId} .sets-container`);
             if (!container) return;
 
-            container.innerHTML = exercise.sets.map((set, index) => `
-                <div class="set-row">
-                    <span class="set-label">Set ${index + 1}</span>
-                    <input 
-                        type="text" 
-                        inputmode="decimal"
-                        class="set-input" 
-                        placeholder="Weight (lbs/kg)" 
-                        value="${escapeHtml(set.weight)}"
-                        onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
-                    <input 
-                        type="text" 
-                        inputmode="numeric"
-                        class="set-input" 
-                        placeholder="Reps" 
-                        value="${escapeHtml(set.reps)}"
-                        onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
-                    <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
-                </div>
-            `).join('');
+            container.innerHTML = exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('');
         }
 
         function renderExercises() {
@@ -2596,31 +2640,10 @@
                     ${renderSetupAndNotes(exercise)}
                     
                     <div class="sets-container">
-                        ${exercise.sets.map((set, index) => `
-                            <div class="set-row">
-                                <span class="set-label">Set ${index + 1}</span>
-                                <input 
-                                    type="text" 
-                                    inputmode="decimal"
-                                    class="set-input" 
-                                    placeholder="Weight (lbs/kg)" 
-                                    value="${escapeHtml(set.weight)}"
-                                    onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
-                                <input 
-                                    type="text" 
-                                    inputmode="numeric"
-                                    class="set-input" 
-                                    placeholder="Reps" 
-                                    value="${escapeHtml(set.reps)}"
-                                    onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
-                                <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
-                            </div>
-                        `).join('')}
+                        ${exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('')}
                     </div>
                     
-                    <div class="exercise-controls">
-                        <button class="btn btn-primary btn-small" onclick="addSet('${exercise.id}')">➕ Add Set</button>
-                    </div>
+                    ${renderExerciseControls(exercise.id)}
                 </div>
             `).join('');
         }
