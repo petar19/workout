@@ -2655,13 +2655,13 @@
 
         function renderSetsSection(exercise) {
             if (currentMode === 'template') {
-                // In template mode, show the number of sets
+                // In template mode, show just a single label with the number of sets
                 const numSets = exercise.setsNumber || (exercise.sets ? exercise.sets.length : 1);
-                return Array.from({ length: numSets }, (_, index) => `
+                return `
                     <div class="set-row">
-                        <span class="set-label">Set ${index + 1}</span>
+                        <span class="set-label">Number of Sets: ${numSets}</span>
                     </div>
-                `).join('');
+                `;
             } else {
                 // In workout mode, show the full set inputs
                 if (!exercise.sets || exercise.sets.length === 0) {
