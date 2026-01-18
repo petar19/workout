@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Tracker</title>
-    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         * {
@@ -803,12 +802,11 @@
             <div class="dropdown" id="import-export-dropdown">
                 <button class="btn btn-success" onclick="toggleDropdown()">📦 Import/Export ▼</button>
                 <div class="dropdown-content" id="dropdown-content">
+                    <button class="btn btn-info" onclick="importWorkout(); closeDropdown()">📤 Import</button>
                     <button class="btn btn-success" onclick="exportWorkout(); closeDropdown()">📥 Export Current</button>
                     <button class="btn btn-success" onclick="exportTemplates(); closeDropdown()">📥 Export Templates</button>
-                    <button class="btn btn-success" onclick="exportAllAsJson(); closeDropdown()">📥 Export All (JSON)</button>
-                    <button class="btn btn-success" onclick="exportMultipleWorkouts(); closeDropdown()">📥 Export All (ZIP)</button>
-                    <button class="btn btn-info" onclick="importWorkout(); closeDropdown()">📤 Import</button>
-                    <button class="btn btn-info" onclick="importZipWorkouts(); closeDropdown()">📤 Import ZIP</button>
+                    <button class="btn btn-success" onclick="exportWorkouts(); closeDropdown()">📥 Export Workouts</button>
+                    <button class="btn btn-success" onclick="exportAllAsJson(); closeDropdown()">📥 Export All</button>
                 </div>
             </div>
             <button class="btn btn-info" id="toggle-all-videos-btn" onclick="toggleAllVideos()">📺 Collapse All Videos</button>
@@ -2733,6 +2731,30 @@
             alert(`Exported ${templates.length} template(s)!`);
         }
 
+        function exportWorkouts() {
+            const workouts = savedWorkouts.filter(w => w.isTemplate !== true);
+            
+            if (workouts.length === 0) {
+                alert('No workouts to export. Save some workouts first!');
+                return;
+            }
+
+            // Export as JSON array
+            const dataStr = JSON.stringify(workouts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `workouts_${new Date().toISOString().split('T')[0]}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert(`Exported ${workouts.length} workout(s)!`);
+        }
+
         function exportAllAsJson() {
             if (savedWorkouts.length === 0) {
                 alert('No saved workouts to export. Save some workouts first!');
@@ -2753,40 +2775,6 @@
             URL.revokeObjectURL(url);
             
             alert(`Exported ${savedWorkouts.length} workout(s) and template(s)!`);
-        }
-
-        async function exportMultipleWorkouts() {
-            if (savedWorkouts.length === 0) {
-                alert('No saved workouts to export. Save some workouts first!');
-                return;
-            }
-
-            // Check if JSZip is available
-            if (typeof JSZip === 'undefined') {
-                alert('ZIP export functionality is not available. Please check your internet connection and reload the page.');
-                return;
-            }
-
-            const zip = new JSZip();
-            
-            savedWorkouts.forEach((workout, index) => {
-                const filename = generateExportFilename(workout.workoutTitle, workout.timerSeconds || 0);
-                const dataStr = JSON.stringify(workout, null, 2);
-                zip.file(filename, dataStr);
-            });
-
-            const zipBlob = await zip.generateAsync({ type: 'blob' });
-            const url = URL.createObjectURL(zipBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `workouts_${new Date().toISOString().split('T')[0]}.zip`;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            alert(`Exported ${savedWorkouts.length} workouts as ZIP file!`);
         }
 
         function importWorkout() {
@@ -2850,62 +2838,6 @@
                     }
                 };
                 reader.readAsText(file);
-            };
-            
-            input.click();
-        }
-
-        async function importZipWorkouts() {
-            // Check if JSZip is available
-            if (typeof JSZip === 'undefined') {
-                alert('ZIP import functionality is not available. Please check your internet connection and reload the page.');
-                return;
-            }
-
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.zip';
-            
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                try {
-                    const zip = await JSZip.loadAsync(file);
-                    let importedCount = 0;
-                    
-                    for (const [filename, zipEntry] of Object.entries(zip.files)) {
-                        if (zipEntry.dir || !filename.endsWith('.json')) continue;
-                        
-                        const content = await zipEntry.async('string');
-                        try {
-                            const workoutData = JSON.parse(content);
-                            
-                            // Validate workout data
-                            if (workoutData.exercises && Array.isArray(workoutData.exercises)) {
-                                if (!workoutData.savedAt) {
-                                    workoutData.savedAt = new Date().toISOString();
-                                }
-                                savedWorkouts.unshift(workoutData);
-                                importedCount++;
-                            }
-                        } catch (parseError) {
-                            console.error(`Error parsing ${filename}:`, parseError);
-                        }
-                    }
-                    
-                    // Limit to 50 workouts
-                    if (savedWorkouts.length > 50) {
-                        savedWorkouts = savedWorkouts.slice(0, 50);
-                    }
-                    
-                    saveSavedWorkouts();
-                    updateWorkoutSelector();
-                    
-                    alert(`Successfully imported ${importedCount} workouts from ZIP file!`);
-                } catch (error) {
-                    alert('Error importing ZIP file: ' + error.message);
-                }
             };
             
             input.click();
