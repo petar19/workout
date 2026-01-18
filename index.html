@@ -2083,8 +2083,16 @@
             const videos = [];
             
             allGroups.forEach(group => {
-                const url = group.querySelector('.video-url-input').value.trim();
-                const label = group.querySelector('.video-label-input').value.trim();
+                const urlInput = group.querySelector('.video-url-input');
+                const labelInput = group.querySelector('.video-label-input');
+                
+                // Add null checks to prevent runtime errors
+                if (!urlInput || !labelInput) {
+                    return;
+                }
+                
+                const url = urlInput.value.trim();
+                const label = labelInput.value.trim();
                 
                 // Only include if URL is not empty
                 if (url) {
@@ -2111,7 +2119,7 @@
                 videos = [{ url: videos, label: '' }];
             }
             
-            // Remove the default empty group
+            // Clear and reset before populating
             const videoContainer = document.getElementById('video-inputs-container');
             videoContainer.innerHTML = '';
             videoInputCount = 0;
