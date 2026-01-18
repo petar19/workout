@@ -2655,13 +2655,8 @@
 
         function renderSetsSection(exercise) {
             if (currentMode === 'template') {
-                // In template mode, show just a single label with the number of sets
-                const numSets = exercise.setsNumber || (exercise.sets ? exercise.sets.length : 1);
-                return `
-                    <div class="set-row">
-                        <span class="set-label">Number of Sets: ${numSets}</span>
-                    </div>
-                `;
+                // In template mode, set count is shown inline with exercise name, so return empty
+                return '';
             } else {
                 // In workout mode, show the full set inputs
                 if (!exercise.sets || exercise.sets.length === 0) {
@@ -2692,7 +2687,7 @@
                             <span class="drag-handle">⋮⋮</span>
                             <div>
                                 <div class="exercise-title">
-                                    ${escapeHtml(exercise.name)}
+                                    ${escapeHtml(exercise.name)}${currentMode === 'template' ? ` <span style="color: #718096; font-size: 0.9rem; font-weight: 400;">(${exercise.setsNumber || (exercise.sets ? exercise.sets.length : 1)} sets)</span>` : ''}
                                 </div>
                                 ${renderBodyPartsField(exercise)}
                             </div>
