@@ -638,40 +638,6 @@
             justify-content: center;
         }
 
-        .mode-tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .mode-tab {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            background: white;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            color: #4a5568;
-        }
-
-        .mode-tab:not(:last-child) {
-            border-right: 2px solid #e2e8f0;
-        }
-
-        .mode-tab:hover {
-            background: #f7fafc;
-        }
-
-        .mode-tab.active {
-            background: #667eea;
-            color: white;
-        }
-
         .share-dialog {
             margin-top: 20px;
             padding: 15px;
@@ -693,26 +659,6 @@
             border-radius: 6px;
             font-size: 14px;
             font-family: monospace;
-        }
-
-        .import-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .import-item {
-            padding: 10px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .import-item-name {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 5px;
         }
 
         .dropdown {
@@ -1437,6 +1383,12 @@
             const encoded = btoa(encodeURIComponent(JSON.stringify([data])));
             const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
             
+            // Note: Large workouts may exceed browser URL length limits (~2048 chars)
+            // Users with very large workouts should use Export instead
+            if (url.length > 2000) {
+                console.warn('Share URL is quite long:', url.length, 'characters');
+            }
+            
             document.getElementById('share-url-input').value = url;
             document.getElementById('share-dialog-modal').classList.add('active');
         }
@@ -1451,6 +1403,11 @@
             
             const encoded = btoa(encodeURIComponent(JSON.stringify(templates)));
             const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+            
+            // Note: Large datasets may exceed browser URL length limits (~2048 chars)
+            if (url.length > 2000) {
+                console.warn('Share URL is quite long:', url.length, 'characters');
+            }
             
             document.getElementById('share-url-input').value = url;
             document.getElementById('share-dialog-modal').classList.add('active');
@@ -1491,9 +1448,9 @@
             
             if (dataParam) {
                 try {
-                    // Validate base64 format (including URL-safe characters)
-                    if (!/^[A-Za-z0-9+/\-_=]*$/.test(dataParam)) {
-                        throw new Error('Invalid base64 format');
+                    // Validate base64-like format
+                    if (!/^[A-Za-z0-9+/=%-]*$/.test(dataParam)) {
+                        throw new Error('Invalid data format');
                     }
                     
                     const decoded = JSON.parse(decodeURIComponent(atob(dataParam)));
