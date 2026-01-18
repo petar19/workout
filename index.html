@@ -1770,18 +1770,14 @@
             
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
             
-            // Check if a workout with the same name already exists
-            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === workoutTitle && !w.isTemplate);
-            if (existingIndex !== -1) {
-                if (!confirm(`A workout named "${workoutTitle}" already exists. Do you want to overwrite it?`)) {
-                    return;
-                }
-                // Remove the existing workout
-                savedWorkouts.splice(existingIndex, 1);
-            }
+            // Append current datetime to workout name
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const workoutTitleWithDatetime = `${workoutTitle} - ${dateStr} ${timeStr}`;
 
             const workoutData = {
-                workoutTitle: workoutTitle,
+                workoutTitle: workoutTitleWithDatetime,
                 exercises: exercises,
                 timerSeconds: timerSeconds,
                 savedAt: new Date().toISOString(),
