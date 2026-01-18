@@ -897,8 +897,10 @@
                     <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">YouTube Video URL (optional)</label>
-                    <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=..." autocomplete="off">
+                    <label class="form-label">YouTube Videos (optional)</label>
+                    <div id="video-inputs-container">
+                        <!-- Video input fields will be added dynamically -->
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Body Parts Worked (optional)</label>
@@ -1236,7 +1238,7 @@
             const templateExercises = exercises.map(exercise => ({
                 id: exercise.id,
                 name: exercise.name,
-                videoUrl: exercise.videoUrl,
+                videos: exercise.videos || (exercise.videoUrl ? [{ url: exercise.videoUrl, label: '' }] : []),
                 bodyParts: exercise.bodyParts,
                 setup: exercise.setup,
                 notes: exercise.notes,
@@ -1323,7 +1325,7 @@
             const templateExercises = exercises.map(exercise => ({
                 id: exercise.id,
                 name: exercise.name,
-                videoUrl: exercise.videoUrl,
+                videos: exercise.videos || (exercise.videoUrl ? [{ url: exercise.videoUrl, label: '' }] : []),
                 bodyParts: exercise.bodyParts,
                 setup: exercise.setup,
                 notes: exercise.notes,
@@ -1993,12 +1995,144 @@
             return `${hours}h${minutes}m${secs}s`;
         }
 
+        // Video input management functions
+        let videoInputCount = 0;
+
+        function createVideoInputGroup(url = '', label = '') {
+            const index = videoInputCount++;
+            const container = document.createElement('div');
+            container.className = 'video-input-group';
+            container.dataset.index = index;
+            container.style.marginBottom = '15px';
+            container.style.padding = '10px';
+            container.style.background = '#f7fafc';
+            container.style.borderRadius = '6px';
+            container.style.border = '2px solid #e2e8f0';
+            
+            container.innerHTML = `
+                <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px;">
+                    <input type="text" 
+                           class="form-input video-label-input" 
+                           placeholder="Label (optional, e.g., 'Short demo', 'Detailed')" 
+                           value="${escapeHtml(label)}"
+                           style="flex: 1;"
+                           autocomplete="off">
+                    <button type="button" class="btn btn-danger btn-small remove-video-btn" style="min-width: auto; padding: 8px 12px;">✖</button>
+                </div>
+                <input type="text" 
+                       class="form-input video-url-input" 
+                       placeholder="e.g., https://www.youtube.com/watch?v=..." 
+                       value="${escapeHtml(url)}"
+                       autocomplete="off">
+            `;
+            
+            // Add event listener to URL input to add new field when filled
+            const urlInput = container.querySelector('.video-url-input');
+            urlInput.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    // Check if this is the last input group
+                    const allGroups = document.querySelectorAll('.video-input-group');
+                    const lastGroup = allGroups[allGroups.length - 1];
+                    if (container === lastGroup) {
+                        // Add a new empty input group
+                        addVideoInputGroup();
+                    }
+                }
+            });
+            
+            // Add event listener to remove button
+            const removeBtn = container.querySelector('.remove-video-btn');
+            removeBtn.addEventListener('click', function() {
+                removeVideoInputGroup(container);
+            });
+            
+            return container;
+        }
+
+        function addVideoInputGroup(url = '', label = '') {
+            const videoContainer = document.getElementById('video-inputs-container');
+            const inputGroup = createVideoInputGroup(url, label);
+            videoContainer.appendChild(inputGroup);
+        }
+
+        function removeVideoInputGroup(container) {
+            const videoContainer = document.getElementById('video-inputs-container');
+            const allGroups = videoContainer.querySelectorAll('.video-input-group');
+            
+            // Don't remove if it's the only one
+            if (allGroups.length <= 1) {
+                // Just clear the inputs instead
+                container.querySelector('.video-url-input').value = '';
+                container.querySelector('.video-label-input').value = '';
+                return;
+            }
+            
+            container.remove();
+        }
+
+        function clearVideoInputs() {
+            const videoContainer = document.getElementById('video-inputs-container');
+            videoContainer.innerHTML = '';
+            videoInputCount = 0;
+            // Add one empty input group by default
+            addVideoInputGroup();
+        }
+
+        function getVideoInputsData() {
+            const allGroups = document.querySelectorAll('.video-input-group');
+            const videos = [];
+            
+            allGroups.forEach(group => {
+                const url = group.querySelector('.video-url-input').value.trim();
+                const label = group.querySelector('.video-label-input').value.trim();
+                
+                // Only include if URL is not empty
+                if (url) {
+                    videos.push({
+                        url: url,
+                        label: label || '' // Label is optional
+                    });
+                }
+            });
+            
+            return videos;
+        }
+
+        function populateVideoInputs(videos) {
+            clearVideoInputs();
+            
+            if (!videos || videos.length === 0) {
+                // Just leave the one empty input group
+                return;
+            }
+            
+            // If videos is a string (backward compatibility), convert to array
+            if (typeof videos === 'string') {
+                videos = [{ url: videos, label: '' }];
+            }
+            
+            // Remove the default empty group
+            const videoContainer = document.getElementById('video-inputs-container');
+            videoContainer.innerHTML = '';
+            videoInputCount = 0;
+            
+            // Add input groups for each video
+            videos.forEach(video => {
+                const url = typeof video === 'string' ? video : (video.url || '');
+                const label = typeof video === 'string' ? '' : (video.label || '');
+                addVideoInputGroup(url, label);
+            });
+            
+            // Add one empty group at the end
+            addVideoInputGroup();
+        }
+
         function showAddExerciseModal() {
             editingExerciseId = null;
             document.getElementById('modal-header-text').textContent = 'Add New Exercise';
             document.getElementById('modal-submit-btn').textContent = 'Add Exercise';
             document.getElementById('exercise-name').value = '';
-            document.getElementById('exercise-video').value = '';
+            clearVideoInputs(); // Initialize video inputs
             document.getElementById('exercise-body-parts').value = '';
             document.getElementById('exercise-setup').value = '';
             document.getElementById('exercise-notes').value = '';
@@ -2078,10 +2212,21 @@
             document.getElementById('modal-submit-btn').textContent = 'Save Changes';
             document.getElementById('exercise-name').value = exercise.name;
             
-            // Convert embed URL back to watch URL for editing
-            const videoUrl = exercise.videoUrl ? 
-                exercise.videoUrl.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=') : '';
-            document.getElementById('exercise-video').value = videoUrl;
+            // Handle videos - support both old (videoUrl string) and new (videos array) format
+            let videosToPopulate = [];
+            if (exercise.videos && Array.isArray(exercise.videos)) {
+                // New format - convert embed URLs back to watch URLs
+                videosToPopulate = exercise.videos.map(v => ({
+                    url: v.url ? v.url.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=') : '',
+                    label: v.label || ''
+                }));
+            } else if (exercise.videoUrl) {
+                // Old format - convert single videoUrl to array format
+                const videoUrl = exercise.videoUrl.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=');
+                videosToPopulate = [{ url: videoUrl, label: '' }];
+            }
+            populateVideoInputs(videosToPopulate);
+            
             document.getElementById('exercise-body-parts').value = exercise.bodyParts || '';
             document.getElementById('exercise-setup').value = exercise.setup || '';
             document.getElementById('exercise-notes').value = exercise.notes || '';
@@ -2112,7 +2257,7 @@
         function closeExerciseModal() {
             document.getElementById('add-exercise-modal').classList.remove('active');
             document.getElementById('exercise-name').value = '';
-            document.getElementById('exercise-video').value = '';
+            clearVideoInputs();
             document.getElementById('exercise-body-parts').value = '';
             document.getElementById('exercise-setup').value = '';
             document.getElementById('exercise-notes').value = '';
@@ -2175,10 +2320,14 @@
                     // Save exercise name to used names
                     usedExerciseNames.add(name);
                     
+                    // Convert video URL to new format
+                    const embedUrl = getYouTubeEmbedUrl(videoUrl);
+                    const videos = embedUrl ? [{ url: embedUrl, label: '' }] : [];
+                    
                     const exercise = {
                         id: `ex_${Date.now()}_${index}_${Math.floor(Math.random() * 10000)}`,
                         name: name,
-                        videoUrl: getYouTubeEmbedUrl(videoUrl),
+                        videos: videos,
                         bodyParts: bodyParts,
                         setup: '',
                         notes: '',
@@ -2206,7 +2355,7 @@
             
             // Single add/edit mode
             const name = document.getElementById('exercise-name').value.trim();
-            const videoUrl = document.getElementById('exercise-video').value.trim();
+            const videosData = getVideoInputsData(); // Get all videos with labels
             const bodyParts = document.getElementById('exercise-body-parts').value.trim();
             const setup = document.getElementById('exercise-setup').value.trim();
             const notes = document.getElementById('exercise-notes').value.trim();
@@ -2219,13 +2368,21 @@
             // Save exercise name to used names
             usedExerciseNames.add(name);
             saveUsedExerciseNames();
+            
+            // Convert video data to embed URLs
+            const videos = videosData.map(v => ({
+                url: getYouTubeEmbedUrl(v.url),
+                label: v.label
+            }));
 
             if (editingExerciseId) {
                 // Edit existing exercise
                 const exercise = exercises.find(ex => ex.id === editingExerciseId);
                 if (exercise) {
                     exercise.name = name;
-                    exercise.videoUrl = getYouTubeEmbedUrl(videoUrl);
+                    exercise.videos = videos;
+                    // Remove old videoUrl field for backward compatibility
+                    delete exercise.videoUrl;
                     exercise.bodyParts = bodyParts;
                     exercise.setup = setup;
                     exercise.notes = notes;
@@ -2241,7 +2398,7 @@
                 const exercise = {
                     id: `ex_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
                     name: name,
-                    videoUrl: getYouTubeEmbedUrl(videoUrl),
+                    videos: videos,
                     bodyParts: bodyParts,
                     setup: setup,
                     notes: notes,
@@ -2279,7 +2436,7 @@
             
             // Single add mode only
             const name = document.getElementById('exercise-name').value.trim();
-            const videoUrl = document.getElementById('exercise-video').value.trim();
+            const videosData = getVideoInputsData(); // Get all videos with labels
             const bodyParts = document.getElementById('exercise-body-parts').value.trim();
             const setup = document.getElementById('exercise-setup').value.trim();
             const notes = document.getElementById('exercise-notes').value.trim();
@@ -2299,11 +2456,17 @@
                 return;
             }
 
+            // Convert video data to embed URLs
+            const videos = videosData.map(v => ({
+                url: getYouTubeEmbedUrl(v.url),
+                label: v.label
+            }));
+
             // Add new exercise
             const exercise = {
                 id: `ex_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
                 name: name,
-                videoUrl: getYouTubeEmbedUrl(videoUrl),
+                videos: videos,
                 bodyParts: bodyParts,
                 setup: setup,
                 notes: notes,
@@ -2327,7 +2490,7 @@
             
             // Clear the form but keep modal open
             document.getElementById('exercise-name').value = '';
-            document.getElementById('exercise-video').value = '';
+            clearVideoInputs(); // Reset video inputs
             document.getElementById('exercise-body-parts').value = '';
             document.getElementById('exercise-setup').value = '';
             document.getElementById('exercise-notes').value = '';
@@ -2549,23 +2712,50 @@
         }
 
         function renderVideoSection(exercise) {
-            if (exercise.videoUrl) {
-                const isCollapsed = exercise.videoCollapsed || false;
-                return `
-                    <button class="btn btn-info btn-small video-toggle-btn" onclick="toggleVideo('${exercise.id}')">
-                        ${isCollapsed ? '▶️ Show Video' : '🔽 Hide Video'}
-                    </button>
-                    <div class="video-container ${isCollapsed ? 'video-collapsed' : ''}" id="video-${exercise.id}">
-                        <iframe 
-                            src="${exercise.videoUrl}" 
-                            frameborder="0" 
-                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                        </iframe>
-                    </div>`;
-            } else {
+            // Support both old (videoUrl) and new (videos array) format
+            let videos = [];
+            
+            if (exercise.videos && Array.isArray(exercise.videos) && exercise.videos.length > 0) {
+                // New format - array of videos with labels
+                videos = exercise.videos;
+            } else if (exercise.videoUrl) {
+                // Old format - single videoUrl string (backward compatibility)
+                videos = [{ url: exercise.videoUrl, label: '' }];
+            }
+            
+            if (videos.length === 0) {
                 return '';
             }
+            
+            const isCollapsed = exercise.videoCollapsed || false;
+            
+            // Generate HTML for all videos
+            let videosHtml = '';
+            videos.forEach((video, index) => {
+                if (video.url) {
+                    const labelHtml = video.label ? `<div style="font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 0.95rem;">${escapeHtml(video.label)}</div>` : '';
+                    videosHtml += `
+                        <div style="margin-bottom: ${index < videos.length - 1 ? '20px' : '0'};">
+                            ${labelHtml}
+                            <div class="video-container">
+                                <iframe 
+                                    src="${video.url}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        </div>`;
+                }
+            });
+            
+            return `
+                <button class="btn btn-info btn-small video-toggle-btn" onclick="toggleVideo('${exercise.id}')">
+                    ${isCollapsed ? `▶️ Show Video${videos.length > 1 ? 's' : ''}` : `🔽 Hide Video${videos.length > 1 ? 's' : ''}`}
+                </button>
+                <div class="${isCollapsed ? 'video-collapsed' : ''}" id="video-${exercise.id}">
+                    ${videosHtml}
+                </div>`;
         }
 
         function toggleVideo(exerciseId) {
@@ -2578,12 +2768,22 @@
                 const videoContainer = document.getElementById(`video-${exerciseId}`);
                 const button = videoContainer.previousElementSibling;
                 
+                // Count videos for proper plural
+                let videoCount = 0;
+                if (exercise.videos && Array.isArray(exercise.videos)) {
+                    videoCount = exercise.videos.length;
+                } else if (exercise.videoUrl) {
+                    videoCount = 1;
+                }
+                
+                const pluralSuffix = videoCount > 1 ? 's' : '';
+                
                 if (exercise.videoCollapsed) {
                     videoContainer.classList.add('video-collapsed');
-                    button.innerHTML = '▶️ Show Video';
+                    button.innerHTML = `▶️ Show Video${pluralSuffix}`;
                 } else {
                     videoContainer.classList.remove('video-collapsed');
-                    button.innerHTML = '🔽 Hide Video';
+                    button.innerHTML = `🔽 Hide Video${pluralSuffix}`;
                 }
             }
         }
@@ -2631,7 +2831,8 @@
             allVideosCollapsed = !allVideosCollapsed;
             
             exercises.forEach(exercise => {
-                if (exercise.videoUrl) {
+                // Support both old and new format
+                if (exercise.videoUrl || (exercise.videos && exercise.videos.length > 0)) {
                     exercise.videoCollapsed = allVideosCollapsed;
                 }
             });
