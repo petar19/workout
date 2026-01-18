@@ -1145,6 +1145,11 @@
                 el.style.display = mode === 'template' ? '' : 'none';
             });
             
+            // Pause timer when switching to template mode
+            if (mode === 'template' && timerRunning) {
+                pauseTimer();
+            }
+            
             // Update share dropdown button text
             const shareButtons = document.querySelectorAll('#share-dropdown-content .btn-info');
             if (shareButtons.length > 0) {
@@ -1475,7 +1480,7 @@
             urls.forEach((url, index) => {
                 html += `
                     <div class="share-url-container" style="margin-bottom: 15px;">
-                        <input type="text" class="share-url-input" value="${escapeHtml(url)}" readonly id="share-url-${index}">
+                        <input type="text" class="share-url-input" data-share-url="true" value="${escapeHtml(url)}" readonly id="share-url-${index}">
                         <button class="btn btn-primary" onclick="copyShareUrlById('share-url-${index}')">📋 Copy ${index + 1}</button>
                     </div>`;
             });
@@ -1501,8 +1506,8 @@
         }
 
         function copyAllShareUrls() {
-            // Collect all share URL inputs
-            const inputs = document.querySelectorAll('[id^="share-url-"]');
+            // Collect all share URL inputs using data attribute
+            const inputs = document.querySelectorAll('input[data-share-url="true"]');
             const urls = Array.from(inputs).map(input => input.value);
             const allUrls = urls.join('\n');
             const successMessage = `Copied all ${urls.length} links to clipboard!`;
