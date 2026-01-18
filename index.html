@@ -767,7 +767,7 @@
         </div>
         
         <!-- Timer -->
-        <div class="timer-container" id="timer-container">
+        <div class="timer-container workout-only" id="timer-container">
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
                 <button class="btn btn-success btn-small" id="play-btn" onclick="startTimer()">▶️ Play</button>
@@ -775,7 +775,7 @@
                 <button class="btn btn-info btn-small" onclick="resetTimer()">🔄 Reset</button>
             </div>
         </div>
-        <div class="timer-spacer" id="timer-spacer"></div>
+        <div class="timer-spacer workout-only" id="timer-spacer"></div>
         
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
@@ -2537,7 +2537,7 @@
             const container = document.querySelector(`#exercise-${exerciseId} .sets-container`);
             if (!container) return;
 
-            container.innerHTML = exercise.sets.map((set, index) => `
+            container.innerHTML = currentMode === 'workout' ? exercise.sets.map((set, index) => `
                 <div class="set-row">
                     <span class="set-label">Set ${index + 1}</span>
                     <input 
@@ -2555,6 +2555,10 @@
                         value="${escapeHtml(set.reps)}"
                         onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
                     <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
+                </div>
+            `).join('') : exercise.sets.map((set, index) => `
+                <div class="set-row">
+                    <span class="set-label">Set ${index + 1}</span>
                 </div>
             `).join('');
         }
@@ -2596,7 +2600,7 @@
                     ${renderSetupAndNotes(exercise)}
                     
                     <div class="sets-container">
-                        ${exercise.sets.map((set, index) => `
+                        ${currentMode === 'workout' ? exercise.sets.map((set, index) => `
                             <div class="set-row">
                                 <span class="set-label">Set ${index + 1}</span>
                                 <input 
@@ -2615,12 +2619,18 @@
                                     onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
                                 <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
                             </div>
+                        `).join('') : exercise.sets.map((set, index) => `
+                            <div class="set-row">
+                                <span class="set-label">Set ${index + 1}</span>
+                            </div>
                         `).join('')}
                     </div>
                     
+                    ${currentMode === 'workout' ? `
                     <div class="exercise-controls">
                         <button class="btn btn-primary btn-small" onclick="addSet('${exercise.id}')">➕ Add Set</button>
                     </div>
+                    ` : ''}
                 </div>
             `).join('');
         }
