@@ -766,7 +766,7 @@
             <input type="text" id="workout-title" class="workout-title-input" placeholder="Enter workout name..." value="My Workout">
         </div>
         
-        <!-- Timer -->
+        <!-- Timer (hidden in template mode via workout-only class) -->
         <div class="timer-container workout-only" id="timer-container">
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
@@ -1166,7 +1166,8 @@
                     initializeSortable();
                 }
             } else {
-                // Re-render exercises to update visibility of weight/reps inputs
+                // Re-render exercises to update visibility of weight/reps inputs based on mode
+                // This is necessary because template mode hides these inputs even when the data hasn't changed
                 renderExercises();
                 initializeSortable();
             }
@@ -2547,6 +2548,16 @@
             }
         }
 
+        function renderExerciseControls(exerciseId) {
+            if (currentMode === 'workout') {
+                return `
+                    <div class="exercise-controls">
+                        <button class="btn btn-primary btn-small" onclick="addSet('${exerciseId}')">➕ Add Set</button>
+                    </div>`;
+            }
+            return '';
+        }
+
         function toggleAllVideos() {
             allVideosCollapsed = !allVideosCollapsed;
             
@@ -2613,11 +2624,7 @@
                         ${exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('')}
                     </div>
                     
-                    ${currentMode === 'workout' ? `
-                    <div class="exercise-controls">
-                        <button class="btn btn-primary btn-small" onclick="addSet('${exercise.id}')">➕ Add Set</button>
-                    </div>
-                    ` : ''}
+                    ${renderExerciseControls(exercise.id)}
                 </div>
             `).join('');
         }
