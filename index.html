@@ -2518,6 +2518,35 @@
             }
         }
 
+        function renderSetRow(exercise, set, index) {
+            if (currentMode === 'workout') {
+                return `
+                    <div class="set-row">
+                        <span class="set-label">Set ${index + 1}</span>
+                        <input 
+                            type="text" 
+                            inputmode="decimal"
+                            class="set-input" 
+                            placeholder="Weight (lbs/kg)" 
+                            value="${escapeHtml(set.weight)}"
+                            onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
+                        <input 
+                            type="text" 
+                            inputmode="numeric"
+                            class="set-input" 
+                            placeholder="Reps" 
+                            value="${escapeHtml(set.reps)}"
+                            onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
+                        <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
+                    </div>`;
+            } else {
+                return `
+                    <div class="set-row">
+                        <span class="set-label">Set ${index + 1}</span>
+                    </div>`;
+            }
+        }
+
         function toggleAllVideos() {
             allVideosCollapsed = !allVideosCollapsed;
             
@@ -2541,30 +2570,7 @@
             const container = document.querySelector(`#exercise-${exerciseId} .sets-container`);
             if (!container) return;
 
-            container.innerHTML = currentMode === 'workout' ? exercise.sets.map((set, index) => `
-                <div class="set-row">
-                    <span class="set-label">Set ${index + 1}</span>
-                    <input 
-                        type="text" 
-                        inputmode="decimal"
-                        class="set-input" 
-                        placeholder="Weight (lbs/kg)" 
-                        value="${escapeHtml(set.weight)}"
-                        onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
-                    <input 
-                        type="text" 
-                        inputmode="numeric"
-                        class="set-input" 
-                        placeholder="Reps" 
-                        value="${escapeHtml(set.reps)}"
-                        onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
-                    <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
-                </div>
-            `).join('') : exercise.sets.map((set, index) => `
-                <div class="set-row">
-                    <span class="set-label">Set ${index + 1}</span>
-                </div>
-            `).join('');
+            container.innerHTML = exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('');
         }
 
         function renderExercises() {
@@ -2604,30 +2610,7 @@
                     ${renderSetupAndNotes(exercise)}
                     
                     <div class="sets-container">
-                        ${currentMode === 'workout' ? exercise.sets.map((set, index) => `
-                            <div class="set-row">
-                                <span class="set-label">Set ${index + 1}</span>
-                                <input 
-                                    type="text" 
-                                    inputmode="decimal"
-                                    class="set-input" 
-                                    placeholder="Weight (lbs/kg)" 
-                                    value="${escapeHtml(set.weight)}"
-                                    onchange="updateSet('${exercise.id}', ${index}, 'weight', this.value)">
-                                <input 
-                                    type="text" 
-                                    inputmode="numeric"
-                                    class="set-input" 
-                                    placeholder="Reps" 
-                                    value="${escapeHtml(set.reps)}"
-                                    onchange="updateSet('${exercise.id}', ${index}, 'reps', this.value)">
-                                <button class="btn btn-danger btn-small" onclick="removeSet('${exercise.id}', ${index})" ${exercise.sets.length === 1 ? 'disabled' : ''}>✖</button>
-                            </div>
-                        `).join('') : exercise.sets.map((set, index) => `
-                            <div class="set-row">
-                                <span class="set-label">Set ${index + 1}</span>
-                            </div>
-                        `).join('')}
+                        ${exercise.sets.map((set, index) => renderSetRow(exercise, set, index)).join('')}
                     </div>
                     
                     ${currentMode === 'workout' ? `
