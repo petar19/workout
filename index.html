@@ -803,10 +803,12 @@
             <div class="dropdown" id="import-export-dropdown">
                 <button class="btn btn-success" onclick="toggleDropdown()">📦 Import/Export ▼</button>
                 <div class="dropdown-content" id="dropdown-content">
-                    <button class="btn btn-success" onclick="exportWorkout(); closeDropdown()">📥 Export Workout</button>
-                    <button class="btn btn-info" onclick="importWorkout(); closeDropdown()">📤 Import Workout</button>
-                    <button class="btn btn-success" onclick="exportMultipleWorkouts(); closeDropdown()">📦 Export Multiple (ZIP)</button>
-                    <button class="btn btn-info" onclick="importZipWorkouts(); closeDropdown()">📦 Import ZIP</button>
+                    <button class="btn btn-success" onclick="exportWorkout(); closeDropdown()">📥 Export Current</button>
+                    <button class="btn btn-success" onclick="exportTemplates(); closeDropdown()">📥 Export Templates</button>
+                    <button class="btn btn-success" onclick="exportAllAsJson(); closeDropdown()">📥 Export All (JSON)</button>
+                    <button class="btn btn-success" onclick="exportMultipleWorkouts(); closeDropdown()">📥 Export All (ZIP)</button>
+                    <button class="btn btn-info" onclick="importWorkout(); closeDropdown()">📤 Import</button>
+                    <button class="btn btn-info" onclick="importZipWorkouts(); closeDropdown()">📤 Import ZIP</button>
                 </div>
             </div>
             <button class="btn btn-info" id="toggle-all-videos-btn" onclick="toggleAllVideos()">📺 Collapse All Videos</button>
@@ -1401,16 +1403,19 @@
                 return;
             }
             
-            const encoded = btoa(encodeURIComponent(JSON.stringify(templates)));
-            const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+            // Split templates into groups of 2 if URL would be too long
+            const urls = [];
+            const templatesPerUrl = 2;
             
-            // Note: Large datasets may exceed browser URL length limits (~2048 chars)
-            if (url.length > 2000) {
-                console.warn('Share URL is quite long:', url.length, 'characters');
+            for (let i = 0; i < templates.length; i += templatesPerUrl) {
+                const batch = templates.slice(i, i + templatesPerUrl);
+                const encoded = btoa(encodeURIComponent(JSON.stringify(batch)));
+                const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+                urls.push(url);
             }
             
-            document.getElementById('share-url-input').value = url;
-            document.getElementById('share-dialog-modal').classList.add('active');
+            // Show multiple URLs in the dialog
+            showMultipleShareUrls(urls);
         }
 
         function fallbackCopyToClipboard(input) {
@@ -1440,6 +1445,52 @@
 
         function closeShareDialog() {
             document.getElementById('share-dialog-modal').classList.remove('active');
+        }
+
+        function showMultipleShareUrls(urls) {
+            const modal = document.getElementById('share-dialog-modal');
+            const modalContent = modal.querySelector('.modal-content');
+            
+            // Build the content for multiple URLs
+            let html = `
+                <div class="modal-header">Share Links (${urls.length} link${urls.length > 1 ? 's' : ''})</div>
+                <div class="form-group">
+                    <label class="form-label">Copy these links to share your templates:</label>`;
+            
+            urls.forEach((url, index) => {
+                html += `
+                    <div class="share-url-container" style="margin-bottom: 15px;">
+                        <input type="text" class="share-url-input" value="${escapeHtml(url)}" readonly id="share-url-${index}">
+                        <button class="btn btn-primary" onclick="copyShareUrlById('share-url-${index}')">📋 Copy ${index + 1}</button>
+                    </div>`;
+            });
+            
+            html += `
+                    <small style="color: #718096; display: block; margin-top: 8px;">
+                        Anyone with these links can import your templates by visiting the URLs.
+                        ${urls.length > 1 ? `Share all ${urls.length} links to share all templates.` : ''}
+                    </small>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" onclick="closeShareDialog()">Close</button>
+                </div>`;
+            
+            modalContent.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        function copyShareUrlById(inputId) {
+            const input = document.getElementById(inputId);
+            
+            try {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(() => {
+                    fallbackCopyToClipboard(input);
+                });
+            } catch (err) {
+                fallbackCopyToClipboard(input);
+            }
         }
 
         function parseUrlParams() {
@@ -2658,6 +2709,52 @@
             URL.revokeObjectURL(url);
         }
 
+        function exportTemplates() {
+            const templates = savedWorkouts.filter(w => w.isTemplate === true);
+            
+            if (templates.length === 0) {
+                alert('No templates to export. Create some templates first!');
+                return;
+            }
+
+            // Export as JSON array
+            const dataStr = JSON.stringify(templates, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `templates_${new Date().toISOString().split('T')[0]}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert(`Exported ${templates.length} template(s)!`);
+        }
+
+        function exportAllAsJson() {
+            if (savedWorkouts.length === 0) {
+                alert('No saved workouts to export. Save some workouts first!');
+                return;
+            }
+
+            // Export as JSON array
+            const dataStr = JSON.stringify(savedWorkouts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `all_workouts_${new Date().toISOString().split('T')[0]}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert(`Exported ${savedWorkouts.length} workout(s) and template(s)!`);
+        }
+
         async function exportMultipleWorkouts() {
             if (savedWorkouts.length === 0) {
                 alert('No saved workouts to export. Save some workouts first!');
@@ -2706,37 +2803,47 @@
                     try {
                         const imported = JSON.parse(event.target.result);
                         
-                        // Check if it's new format or legacy format
-                        let newExercises, newTitle, newTimerSeconds;
-                        
-                        if (imported.exercises && Array.isArray(imported.exercises)) {
-                            // New format
-                            newExercises = imported.exercises;
-                            newTitle = imported.workoutTitle || 'Imported Workout';
-                            newTimerSeconds = imported.timerSeconds || 0;
-                        } else if (Array.isArray(imported)) {
-                            // Legacy format
-                            newExercises = imported;
-                            newTitle = 'Imported Workout';
-                            newTimerSeconds = 0;
+                        // Check if it's an array of workouts/templates or a single item
+                        if (Array.isArray(imported)) {
+                            // Array format - could be multiple items
+                            if (imported.length === 0) {
+                                alert('The file contains no workouts or templates.');
+                                return;
+                            }
+                            
+                            // Check if array contains workout objects or is legacy format
+                            if (imported[0].exercises && Array.isArray(imported[0].exercises)) {
+                                // Array of workout/template objects
+                                importData = imported;
+                                showImportDialog();
+                            } else {
+                                // Legacy format - array of exercises
+                                const newExercises = imported;
+                                const newTitle = 'Imported Workout';
+                                const newTimerSeconds = 0;
+                                
+                                const confirmMsg = exercises.length > 0 
+                                    ? 'This will replace your current workout. Continue?' 
+                                    : 'Import this workout plan?';
+
+                                if (confirm(confirmMsg)) {
+                                    exercises = newExercises;
+                                    workoutTitle = newTitle;
+                                    timerSeconds = newTimerSeconds;
+                                    document.getElementById('workout-title').value = workoutTitle;
+                                    pauseTimer();
+                                    updateTimerDisplay();
+                                    saveToLocalStorage();
+                                    renderExercises();
+                                    initializeSortable();
+                                }
+                            }
+                        } else if (imported.exercises && Array.isArray(imported.exercises)) {
+                            // Single workout/template object
+                            importData = [imported];
+                            showImportDialog();
                         } else {
                             throw new Error('Invalid workout file format');
-                        }
-
-                        const confirmMsg = exercises.length > 0 
-                            ? 'This will replace your current workout. Continue?' 
-                            : 'Import this workout plan?';
-
-                        if (confirm(confirmMsg)) {
-                            exercises = newExercises;
-                            workoutTitle = newTitle;
-                            timerSeconds = newTimerSeconds;
-                            document.getElementById('workout-title').value = workoutTitle;
-                            pauseTimer();
-                            updateTimerDisplay();
-                            saveToLocalStorage();
-                            renderExercises();
-                            initializeSortable();
                         }
                     } catch (error) {
                         alert('Error importing workout: ' + error.message);
