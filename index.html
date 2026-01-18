@@ -1000,15 +1000,27 @@
             }
             
             loadSavedWorkouts();
-            loadFromLocalStorage();
             loadUsedExerciseNames();
             
             // Restore the saved mode (tab) from localStorage
             const savedMode = localStorage.getItem('currentMode');
             if (savedMode && (savedMode === 'template' || savedMode === 'workout')) {
                 currentMode = savedMode;
-                switchMode(currentMode);
             }
+            
+            // IMPORTANT: Only load workout data if in workout mode
+            // Template tab should start blank to prevent cross-contamination
+            if (currentMode === 'workout') {
+                loadFromLocalStorage();
+            } else {
+                // Initialize with blank template state
+                exercises = [];
+                workoutTitle = 'My Template';
+                document.getElementById('workout-title').value = workoutTitle;
+            }
+            
+            // Switch to the saved mode (or default workout mode)
+            switchMode(currentMode);
             
             updateWorkoutSelector();
             renderExercises();
@@ -1188,7 +1200,16 @@
                 const workout = savedWorkouts[parseInt(currentWorkoutId)];
                 if ((mode === 'template' && !workout?.isTemplate) || (mode === 'workout' && workout?.isTemplate)) {
                     currentWorkoutId = 'current';
-                    loadFromLocalStorage();
+                    // IMPORTANT: DO NOT call loadFromLocalStorage() when switching to template mode
+                    // Template tab should start blank to prevent cross-contamination from workout tab
+                    if (mode === 'workout') {
+                        loadFromLocalStorage();
+                    } else {
+                        // Reset to blank template state
+                        exercises = [];
+                        workoutTitle = 'My Template';
+                        document.getElementById('workout-title').value = workoutTitle;
+                    }
                     renderExercises();
                     initializeSortable();
                 }
@@ -1689,7 +1710,16 @@
 
             if (selectedValue === 'current') {
                 currentWorkoutId = 'current';
-                loadFromLocalStorage();
+                // IMPORTANT: DO NOT load workout data when in template mode
+                // Template tab should start blank to prevent cross-contamination from workout tab
+                if (currentMode === 'workout') {
+                    loadFromLocalStorage();
+                } else {
+                    // Reset to blank template state
+                    exercises = [];
+                    workoutTitle = 'My Template';
+                    document.getElementById('workout-title').value = workoutTitle;
+                }
             } else {
                 const index = parseInt(selectedValue);
                 if (savedWorkouts[index]) {
@@ -1841,15 +1871,20 @@
             savedWorkouts.splice(selectedIndex, 1);
             saveSavedWorkouts();
             
-            // If the deleted template was the current one, reset to "current"
-            if (currentWorkoutId === selectedIndex.toString()) {
-                currentWorkoutId = 'current';
-                loadFromLocalStorage();
-                renderExercises();
-                initializeSortable();
-            }
+            // Always reset to "current" after deleting a template, even if it wasn't the current one
+            // This ensures the dropdown is unselected and reset
+            currentWorkoutId = 'current';
             
+            // Clear the current exercises and reset to blank template state
+            exercises = [];
+            workoutTitle = 'My Template';
+            document.getElementById('workout-title').value = workoutTitle;
+            
+            // Update UI
             updateWorkoutSelector();
+            document.getElementById('workout-selector').value = 'current';
+            renderExercises();
+            initializeSortable();
             
             // Close modal after deletion
             closeTemplateSelector();
@@ -1917,15 +1952,25 @@
             savedWorkouts.splice(index, 1);
             saveSavedWorkouts();
             
-            // If the deleted workout was the current one, switch to "current"
-            if (currentWorkoutId === selectedValue) {
-                currentWorkoutId = 'current';
+            // Always reset to "current" after deletion to ensure dropdown is unselected
+            currentWorkoutId = 'current';
+            
+            if (currentMode === 'template') {
+                // In template mode, reset to blank template
+                exercises = [];
+                workoutTitle = 'My Template';
+                document.getElementById('workout-title').value = workoutTitle;
+            } else {
+                // In workout mode, load from localStorage (current workout)
                 loadFromLocalStorage();
-                renderExercises();
-                initializeSortable();
             }
             
+            // Update UI
             updateWorkoutSelector();
+            selector.value = 'current';
+            renderExercises();
+            initializeSortable();
+            
             alert('Item deleted successfully!');
         }
 
