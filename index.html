@@ -1475,6 +1475,7 @@
                     </small>
                 </div>
                 <div class="modal-actions">
+                    ${urls.length > 1 ? '<button class="btn btn-success" onclick="copyAllShareUrls()">📋 Copy All Links</button>' : ''}
                     <button class="btn btn-danger" onclick="closeShareDialog()">Close</button>
                 </div>`;
             
@@ -1493,6 +1494,49 @@
                 });
             } catch (err) {
                 fallbackCopyToClipboard(input);
+            }
+        }
+
+        function copyAllShareUrls() {
+            // Collect all share URL inputs
+            const inputs = document.querySelectorAll('[id^="share-url-"]');
+            const urls = Array.from(inputs).map(input => input.value);
+            const allUrls = urls.join('\n');
+            
+            try {
+                navigator.clipboard.writeText(allUrls).then(() => {
+                    alert(`Copied all ${urls.length} links to clipboard!`);
+                }).catch(() => {
+                    // Fallback: create temporary textarea
+                    const textarea = document.createElement('textarea');
+                    textarea.value = allUrls;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        alert(`Copied all ${urls.length} links to clipboard!`);
+                    } catch (err) {
+                        alert('Failed to copy. Please copy manually.');
+                    }
+                    document.body.removeChild(textarea);
+                });
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = allUrls;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    alert(`Copied all ${urls.length} links to clipboard!`);
+                } catch (err) {
+                    alert('Failed to copy. Please copy manually.');
+                }
+                document.body.removeChild(textarea);
             }
         }
 
