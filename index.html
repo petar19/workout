@@ -32,8 +32,36 @@
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-size: 2rem;
+        }
+
+        .mode-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-tab {
+            padding: 12px 30px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .mode-tab:hover {
+            background: #f7fafc;
+        }
+
+        .mode-tab.active {
+            background: #667eea;
+            color: white;
         }
 
         .controls {
@@ -212,6 +240,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 40px;
         }
 
         .modal.active {
@@ -478,6 +507,101 @@
             border-color: #cbd5e0;
         }
 
+        .template-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+        }
+
+        .template-item {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .template-item:last-child {
+            border-bottom: none;
+        }
+
+        .template-item:hover {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding-left: 11px;
+        }
+
+        .template-item.selected {
+            background: #e6f0ff;
+            border-left: 4px solid #667eea;
+            padding-left: 11px;
+        }
+
+        .template-item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .template-item-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            display: flex;
+            gap: 15px;
+        }
+
+        .template-item-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .share-dialog-content textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .import-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+            margin-bottom: 20px;
+        }
+
+        .import-item {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        .import-item:last-child {
+            border-bottom: none;
+        }
+
+        .import-item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .import-item-meta {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
         .scroll-to-top {
             position: fixed;
             bottom: 30px;
@@ -512,6 +636,29 @@
             margin-top: 30px;
             display: flex;
             justify-content: center;
+        }
+
+        .share-dialog {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .share-url-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .share-url-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: monospace;
         }
 
         .dropdown {
@@ -601,12 +748,18 @@
     <div class="container">
         <h1>💪 Workout Tracker</h1>
         
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" onclick="switchMode('workout')">🏋️ Workout</button>
+            <button class="mode-tab" onclick="switchMode('template')">📋 Template</button>
+        </div>
+        
         <!-- Workout Selector -->
         <div class="workout-selector">
             <select id="workout-selector" onchange="loadSelectedWorkout()">
                 <option value="current">Current Workout</option>
             </select>
-            <button class="btn btn-danger btn-small" onclick="deleteSelectedWorkout()" style="margin-top: 10px; width: 100%;">🗑️ Delete Selected Workout</button>
+            <button class="btn btn-danger btn-small" onclick="deleteSelectedWorkout()" style="margin-top: 10px; width: 100%;">🗑️ Delete Selected</button>
         </div>
         
         <!-- Workout Title -->
@@ -627,17 +780,26 @@
         
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
-            <button class="btn btn-success" onclick="saveWorkout()">💾 Save Workout</button>
-            <div class="dropdown" id="template-dropdown">
-                <button class="btn btn-success" onclick="toggleTemplateDropdown()">📋 Templates ▼</button>
-                <div class="dropdown-content" id="template-dropdown-content">
-                    <button class="btn btn-success" onclick="saveAsTemplate(); closeTemplateDropdown()">💾 Save as Template</button>
-                    <button class="btn btn-info" onclick="showTemplateManager(); closeTemplateDropdown()">📋 Manage Templates</button>
+            <button class="btn btn-success workout-only" onclick="saveWorkout()">💾 Save Workout</button>
+            <button class="btn btn-success workout-only" onclick="createTemplateFromWorkout()">📋 Create Template</button>
+            <button class="btn btn-primary template-only" onclick="startWorkoutFromTemplate()" style="display: none;">🚀 Start Workout from Template</button>
+            <button class="btn btn-danger workout-only" onclick="resetWorkout()">🔄 Reset Workout</button>
+            <button class="btn btn-info workout-only" onclick="resetAllValues()">⚡ Reset All Values</button>
+            <button class="btn btn-info" onclick="autoFillAllBodyParts()">🤖 Auto-Fill All Body Parts</button>
+            <div class="dropdown template-only" id="new-template-dropdown" style="display: none;">
+                <button class="btn btn-success" onclick="toggleNewTemplateDropdown()">📝 New Template ▼</button>
+                <div class="dropdown-content" id="new-template-dropdown-content">
+                    <button class="btn btn-success" onclick="createBlankTemplate(); closeNewTemplateDropdown()">📄 Blank Template</button>
+                    <button class="btn btn-info" onclick="createTemplateFromWorkoutCopy(); closeNewTemplateDropdown()">📋 From Current Workout</button>
                 </div>
             </div>
-            <button class="btn btn-danger" onclick="resetWorkout()">🔄 Reset Workout</button>
-            <button class="btn btn-info" onclick="resetAllValues()">⚡ Reset All Values</button>
-            <button class="btn btn-info" onclick="autoFillAllBodyParts()">🤖 Auto-Fill All Body Parts</button>
+            <div class="dropdown" id="share-dropdown">
+                <button class="btn btn-info" onclick="toggleShareDropdown()">🔗 Share ▼</button>
+                <div class="dropdown-content" id="share-dropdown-content">
+                    <button class="btn btn-info" onclick="shareCurrentItem(); closeShareDropdown()">🔗 Share Current</button>
+                    <button class="btn btn-success template-only" onclick="shareAllTemplates(); closeShareDropdown()" style="display: none;">📦 Share All Templates</button>
+                </div>
+            </div>
             <div class="dropdown" id="import-export-dropdown">
                 <button class="btn btn-success" onclick="toggleDropdown()">📦 Import/Export ▼</button>
                 <div class="dropdown-content" id="dropdown-content">
@@ -669,14 +831,49 @@
             <div class="modal-header" id="template-modal-header">Start from Template</div>
             <div class="form-group">
                 <label class="form-label">Select a Template</label>
-                <select id="template-selector" class="form-input" size="10" style="height: 300px;">
-                </select>
+                <div id="template-list" class="template-list">
+                </div>
             </div>
             <div class="modal-actions" id="template-modal-actions">
                 <button class="btn btn-primary" id="template-load-btn" onclick="loadTemplate()">🎯 Load</button>
                 <button class="btn btn-info" id="template-edit-btn" onclick="editTemplate()">✏️ Edit</button>
                 <button class="btn btn-danger" id="template-delete-btn" onclick="deleteSelectedTemplate()">🗑️ Delete</button>
                 <button class="btn btn-danger" onclick="closeTemplateSelector()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Dialog Modal -->
+    <div id="share-dialog-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Share Link</div>
+            <div class="form-group">
+                <label class="form-label">Copy this link to share:</label>
+                <div class="share-url-container">
+                    <input type="text" id="share-url-input" class="share-url-input" readonly>
+                    <button class="btn btn-primary" onclick="copyShareUrl()">📋 Copy</button>
+                </div>
+                <small style="color: #718096; display: block; margin-top: 8px;">
+                    Anyone with this link can import your data by visiting the URL.
+                </small>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="closeShareDialog()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Dialog Modal -->
+    <div id="import-dialog-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Import from URL</div>
+            <div class="form-group">
+                <label class="form-label" id="import-label">Select items to import:</label>
+                <div id="import-list" class="import-list"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="confirmImport()">✅ Import Selected</button>
+                <button class="btn btn-danger" onclick="closeImportDialog()">Cancel</button>
             </div>
         </div>
     </div>
@@ -697,39 +894,39 @@
             <div id="single-mode-fields">
                 <div class="form-group">
                     <label class="form-label">Exercise Name *</label>
-                    <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required>
+                    <input type="text" id="exercise-name" class="form-input" placeholder="e.g., Bench Press" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label class="form-label">YouTube Video URL (optional)</label>
-                    <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=...">
+                    <input type="text" id="exercise-video" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=..." autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Body Parts Worked (optional)</label>
-                    <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders">
+                    <input type="text" id="exercise-body-parts" class="form-input" placeholder="e.g., Chest, Triceps, Shoulders" autocomplete="off">
                     <button class="btn btn-info btn-small" onclick="autoDetermineBodyParts()" style="margin-top: 8px; width: 100%;">🔍 Auto-Determine Body Parts</button>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Setup Details (optional)</label>
-                    <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;"></textarea>
+                    <textarea id="exercise-setup" class="form-input" placeholder="e.g., Bench angle at 30 degrees, grip width shoulder-width apart..." rows="3" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Notes/Description (optional)</label>
-                    <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;"></textarea>
+                    <textarea id="exercise-notes" class="form-input" placeholder="e.g., Focus on slow negative, pause at bottom..." rows="3" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
             </div>
             <div id="bulk-mode-fields" style="display: none;">
                 <div class="form-group">
                     <label class="form-label">Exercise Names (one per line) *</label>
-                    <textarea id="bulk-exercise-names" class="form-input" placeholder="Bench Press&#10;Squat&#10;Deadlift" rows="5" style="resize: vertical;"></textarea>
+                    <textarea id="bulk-exercise-names" class="form-input" placeholder="Bench Press&#10;Squat&#10;Deadlift" rows="5" style="resize: vertical;" autocomplete="off"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">YouTube Video URLs (one per line, optional)</label>
-                    <textarea id="bulk-exercise-videos" class="form-input" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..." rows="5" style="resize: vertical;"></textarea>
+                    <textarea id="bulk-exercise-videos" class="form-input" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..." rows="5" style="resize: vertical;" autocomplete="off"></textarea>
                     <small style="color: #718096; display: block; margin-top: 4px;">First URL matches first exercise, second URL matches second exercise, etc.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Body Parts Worked (optional)</label>
-                    <textarea id="bulk-exercise-body-parts" class="form-input" placeholder="Chest, Triceps, Shoulders&#10;Quadriceps, Glutes, Hamstrings&#10;OR enter one line to apply to all exercises" rows="5" style="resize: vertical;"></textarea>
+                    <textarea id="bulk-exercise-body-parts" class="form-input" placeholder="Chest, Triceps, Shoulders&#10;Quadriceps, Glutes, Hamstrings&#10;OR enter one line to apply to all exercises" rows="5" style="resize: vertical;" autocomplete="off"></textarea>
                     <small style="color: #718096; display: block; margin-top: 4px;">If one line, applies to all exercises. Otherwise, matches line by line.</small>
                 </div>
             </div>
@@ -752,14 +949,18 @@
         let allVideosCollapsed = false;
         let usedExerciseNames = new Set();
         let sortableInstance = null;
-        let editingExerciseId = null; // Track if we're editing an exercise
+        let editingExerciseId = null;
         let lastScrollY = 0;
         let scrollTimeout = null;
+        let currentMode = 'workout';
+        let importData = null;
+        let autoSaveTimeout = null;
+        const AUTO_SAVE_DEBOUNCE_MS = 500;
         
         // Exercise data - loaded from JSON file
         let exerciseBodyPartsMap = {};
         let exerciseKeywordsMap = {};
-        let exerciseNames = []; // Extracted keys from the map
+        let exerciseNames = [];
 
         // Load exercises from localStorage on page load
         window.addEventListener('DOMContentLoaded', async () => {
@@ -798,6 +999,7 @@
             renderExercises();
             initializeSortable();
             initScrollToTop();
+            parseUrlParams();
         });
 
         function loadSavedWorkouts() {
@@ -878,6 +1080,11 @@
             };
             try {
                 localStorage.setItem('workoutPlan', JSON.stringify(data));
+                
+                // Auto-save template if in template mode
+                if (currentMode === 'template') {
+                    autoSaveTemplate();
+                }
             } catch (e) {
                 if (e.name === 'QuotaExceededError' || e.code === 22) {
                     alert('Storage limit exceeded! Consider exporting and removing old workouts to free up space.');
@@ -890,14 +1097,19 @@
 
         function updateWorkoutSelector() {
             const selector = document.getElementById('workout-selector');
-            selector.innerHTML = '<option value="current">Current Workout</option>';
+            selector.innerHTML = currentMode === 'workout' 
+                ? '<option value="current">Current Workout</option>'
+                : '<option value="current">Current Template</option>';
             
-            // Only show non-template workouts in the dropdown
             savedWorkouts.forEach((workout, index) => {
-                if (!workout.isTemplate) {
+                const isTemplate = workout.isTemplate === true;
+                if ((currentMode === 'template' && isTemplate) || (currentMode === 'workout' && !isTemplate)) {
                     const option = document.createElement('option');
                     option.value = index;
-                    option.textContent = `${workout.workoutTitle} (${new Date(workout.savedAt).toLocaleDateString()})`;
+                    const displayName = isTemplate 
+                        ? workout.workoutTitle.replace(' (Template)', '')
+                        : workout.workoutTitle;
+                    option.textContent = `${displayName} (${new Date(workout.savedAt).toLocaleDateString()})`;
                     selector.appendChild(option);
                 }
             });
@@ -905,6 +1117,468 @@
             if (currentWorkoutId !== 'current') {
                 selector.value = currentWorkoutId;
             }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update tab appearance
+            const tabs = document.querySelectorAll('.mode-tab');
+            tabs.forEach(tab => {
+                if ((mode === 'workout' && tab.textContent.includes('Workout')) ||
+                    (mode === 'template' && tab.textContent.includes('Template'))) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Update button visibility
+            const workoutOnly = document.querySelectorAll('.workout-only');
+            const templateOnly = document.querySelectorAll('.template-only');
+            
+            workoutOnly.forEach(el => {
+                el.style.display = mode === 'workout' ? '' : 'none';
+            });
+            
+            templateOnly.forEach(el => {
+                el.style.display = mode === 'template' ? '' : 'none';
+            });
+            
+            // Update share dropdown button text
+            const shareButtons = document.querySelectorAll('#share-dropdown-content .btn-info');
+            if (shareButtons.length > 0) {
+                shareButtons[0].innerHTML = mode === 'workout' 
+                    ? '🔗 Share Current Workout'
+                    : '🔗 Share Current Template';
+            }
+            
+            // Update selector
+            updateWorkoutSelector();
+            
+            // Switch to current if mode changed
+            if (currentWorkoutId !== 'current') {
+                const workout = savedWorkouts[parseInt(currentWorkoutId)];
+                if ((mode === 'template' && !workout?.isTemplate) || (mode === 'workout' && workout?.isTemplate)) {
+                    currentWorkoutId = 'current';
+                    loadFromLocalStorage();
+                    renderExercises();
+                    initializeSortable();
+                }
+            }
+        }
+
+        function autoSaveTemplate() {
+            if (currentMode === 'template' && currentWorkoutId !== 'current') {
+                // Debounce auto-save to avoid excessive operations
+                if (autoSaveTimeout) {
+                    clearTimeout(autoSaveTimeout);
+                }
+                
+                autoSaveTimeout = setTimeout(() => {
+                    const index = parseInt(currentWorkoutId);
+                    if (savedWorkouts[index] && savedWorkouts[index].isTemplate) {
+                        workoutTitle = document.getElementById('workout-title').value.trim() || 'My Template';
+                        
+                        const templateData = {
+                            workoutTitle: workoutTitle,
+                            exercises: exercises,
+                            timerSeconds: 0,
+                            savedAt: new Date().toISOString(),
+                            isTemplate: true
+                        };
+                        
+                        savedWorkouts[index] = templateData;
+                        saveSavedWorkouts();
+                        updateWorkoutSelector();
+                    }
+                }, AUTO_SAVE_DEBOUNCE_MS);
+            }
+        }
+
+        function createTemplateFromWorkout() {
+            if (exercises.length === 0) {
+                alert('No exercises to save as template. Add some exercises first!');
+                return;
+            }
+
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
+            const templateTitle = workoutTitle.endsWith(' (Template)') ? workoutTitle : workoutTitle + ' (Template)';
+            
+            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
+            if (existingIndex !== -1) {
+                if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+                savedWorkouts.splice(existingIndex, 1);
+            }
+
+            const templateExercises = exercises.map(exercise => ({
+                id: exercise.id,
+                name: exercise.name,
+                videoUrl: exercise.videoUrl,
+                bodyParts: exercise.bodyParts,
+                setup: exercise.setup,
+                notes: exercise.notes,
+                videoCollapsed: false,
+                sets: exercise.sets.map(() => ({ weight: '', reps: '' }))
+            }));
+
+            const templateData = {
+                workoutTitle: templateTitle,
+                exercises: templateExercises,
+                timerSeconds: 0,
+                savedAt: new Date().toISOString(),
+                isTemplate: true
+            };
+
+            savedWorkouts.unshift(templateData);
+            
+            if (savedWorkouts.length > 50) {
+                savedWorkouts = savedWorkouts.slice(0, 50);
+            }
+
+            saveSavedWorkouts();
+            updateWorkoutSelector();
+            alert('Template created successfully!');
+        }
+
+        function createBlankTemplate() {
+            const templateName = prompt('Enter template name:');
+            if (!templateName) return;
+            
+            const templateTitle = templateName.endsWith(' (Template)') ? templateName : templateName + ' (Template)';
+            
+            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
+            if (existingIndex !== -1) {
+                if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+                savedWorkouts.splice(existingIndex, 1);
+            }
+
+            const templateData = {
+                workoutTitle: templateTitle,
+                exercises: [],
+                timerSeconds: 0,
+                savedAt: new Date().toISOString(),
+                isTemplate: true
+            };
+
+            savedWorkouts.unshift(templateData);
+            saveSavedWorkouts();
+            
+            // Switch to the new template
+            currentWorkoutId = '0';
+            exercises = [];
+            workoutTitle = templateTitle;
+            document.getElementById('workout-title').value = workoutTitle;
+            updateWorkoutSelector();
+            document.getElementById('workout-selector').value = '0';
+            renderExercises();
+            initializeSortable();
+            
+            alert('Blank template created!');
+        }
+
+        function createTemplateFromWorkoutCopy() {
+            if (exercises.length === 0) {
+                alert('No exercises to copy. Add some exercises first!');
+                return;
+            }
+
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
+            const templateTitle = (workoutTitle.endsWith(' (Template)') 
+                ? workoutTitle.replace(' (Template)', '')
+                : workoutTitle) + ' Copy (Template)';
+            
+            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
+            if (existingIndex !== -1) {
+                if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+                savedWorkouts.splice(existingIndex, 1);
+            }
+
+            const templateExercises = exercises.map(exercise => ({
+                id: exercise.id,
+                name: exercise.name,
+                videoUrl: exercise.videoUrl,
+                bodyParts: exercise.bodyParts,
+                setup: exercise.setup,
+                notes: exercise.notes,
+                videoCollapsed: false,
+                sets: exercise.sets.map(() => ({ weight: '', reps: '' }))
+            }));
+
+            const templateData = {
+                workoutTitle: templateTitle,
+                exercises: templateExercises,
+                timerSeconds: 0,
+                savedAt: new Date().toISOString(),
+                isTemplate: true
+            };
+
+            savedWorkouts.unshift(templateData);
+            saveSavedWorkouts();
+            updateWorkoutSelector();
+            alert('Template created from current workout!');
+        }
+
+        function startWorkoutFromTemplate() {
+            if (currentMode !== 'template' || exercises.length === 0) {
+                alert('Please select a template first!');
+                return;
+            }
+
+            if (!confirm('This will start a new workout from this template. Continue?')) {
+                return;
+            }
+
+            // Switch to workout mode
+            currentMode = 'workout';
+            switchMode('workout');
+            
+            // Copy template exercises with empty values
+            workoutTitle = document.getElementById('workout-title').value.trim().replace(' (Template)', '');
+            document.getElementById('workout-title').value = workoutTitle;
+            timerSeconds = 0;
+            currentWorkoutId = 'current';
+            updateTimerDisplay();
+            saveToLocalStorage();
+            
+            alert('Workout started from template!');
+        }
+
+        function toggleNewTemplateDropdown() {
+            const dropdown = document.getElementById('new-template-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function closeNewTemplateDropdown() {
+            const dropdown = document.getElementById('new-template-dropdown');
+            dropdown.classList.remove('active');
+        }
+
+        function toggleShareDropdown() {
+            const dropdown = document.getElementById('share-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function closeShareDropdown() {
+            const dropdown = document.getElementById('share-dropdown');
+            dropdown.classList.remove('active');
+        }
+
+        function shareCurrentItem() {
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Item';
+            
+            const data = {
+                workoutTitle: workoutTitle,
+                exercises: exercises,
+                timerSeconds: timerSeconds,
+                isTemplate: currentMode === 'template'
+            };
+            
+            const encoded = btoa(encodeURIComponent(JSON.stringify([data])));
+            const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+            
+            // Note: Large workouts may exceed browser URL length limits (~2048 chars)
+            // Users with very large workouts should use Export instead
+            if (url.length > 2000) {
+                console.warn('Share URL is quite long:', url.length, 'characters');
+            }
+            
+            document.getElementById('share-url-input').value = url;
+            document.getElementById('share-dialog-modal').classList.add('active');
+        }
+
+        function shareAllTemplates() {
+            const templates = savedWorkouts.filter(w => w.isTemplate === true);
+            
+            if (templates.length === 0) {
+                alert('No templates to share!');
+                return;
+            }
+            
+            const encoded = btoa(encodeURIComponent(JSON.stringify(templates)));
+            const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+            
+            // Note: Large datasets may exceed browser URL length limits (~2048 chars)
+            if (url.length > 2000) {
+                console.warn('Share URL is quite long:', url.length, 'characters');
+            }
+            
+            document.getElementById('share-url-input').value = url;
+            document.getElementById('share-dialog-modal').classList.add('active');
+        }
+
+        function fallbackCopyToClipboard(input) {
+            input.select();
+            input.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy. Please copy manually.');
+            }
+        }
+
+        function copyShareUrl() {
+            const input = document.getElementById('share-url-input');
+            
+            try {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(() => {
+                    fallbackCopyToClipboard(input);
+                });
+            } catch (err) {
+                fallbackCopyToClipboard(input);
+            }
+        }
+
+        function closeShareDialog() {
+            document.getElementById('share-dialog-modal').classList.remove('active');
+        }
+
+        function parseUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    // Validate base64-like format
+                    if (!/^[A-Za-z0-9+/=%-]*$/.test(dataParam)) {
+                        throw new Error('Invalid data format');
+                    }
+                    
+                    const decoded = JSON.parse(decodeURIComponent(atob(dataParam)));
+                    
+                    // Validate it's an array
+                    if (!Array.isArray(decoded)) {
+                        throw new Error('Invalid data format: expected array');
+                    }
+                    
+                    // Validate each item has required fields
+                    for (const item of decoded) {
+                        if (!item.workoutTitle || !Array.isArray(item.exercises)) {
+                            throw new Error('Invalid item structure');
+                        }
+                    }
+                    
+                    if (decoded.length > 0) {
+                        importData = decoded;
+                        showImportDialog();
+                    }
+                } catch (error) {
+                    console.error('Error parsing URL data:', error);
+                    alert('Invalid share link. Unable to import data.');
+                }
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        function showImportDialog() {
+            if (!importData || importData.length === 0) return;
+            
+            const listContainer = document.getElementById('import-list');
+            listContainer.innerHTML = '';
+            
+            if (importData.length === 1) {
+                // Single item - show info and import directly
+                const item = importData[0];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'import-item';
+                itemDiv.innerHTML = `
+                    <div class="import-item-name">${escapeHtml(item.workoutTitle)}</div>
+                    <div style="color: #718096; font-size: 0.9rem;">
+                        ${item.exercises?.length || 0} exercises
+                        ${item.isTemplate ? '(Template)' : '(Workout)'}
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+                
+                document.getElementById('import-label').textContent = 'Import this item?';
+            } else {
+                // Multiple items - show selection list
+                importData.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'import-item';
+                    itemDiv.innerHTML = `
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" checked data-index="${index}" style="width: 20px; height: 20px;">
+                            <div style="flex: 1;">
+                                <div class="import-item-name">${escapeHtml(item.workoutTitle)}</div>
+                                <div style="color: #718096; font-size: 0.9rem;">
+                                    ${item.exercises?.length || 0} exercises
+                                    ${item.isTemplate ? '(Template)' : '(Workout)'}
+                                </div>
+                            </div>
+                        </label>
+                    `;
+                    listContainer.appendChild(itemDiv);
+                });
+                
+                document.getElementById('import-label').textContent = 'Select items to import:';
+            }
+            
+            document.getElementById('import-dialog-modal').classList.add('active');
+        }
+
+        function confirmImport() {
+            if (!importData) return;
+            
+            let itemsToImport = [];
+            
+            if (importData.length === 1) {
+                itemsToImport = importData;
+            } else {
+                const checkboxes = document.querySelectorAll('#import-list input[type="checkbox"]:checked');
+                checkboxes.forEach(cb => {
+                    const index = parseInt(cb.dataset.index);
+                    itemsToImport.push(importData[index]);
+                });
+            }
+            
+            if (itemsToImport.length === 0) {
+                alert('Please select at least one item to import.');
+                return;
+            }
+            
+            itemsToImport.forEach(item => {
+                // Check if already exists (case-insensitive)
+                const existing = savedWorkouts.findIndex(w => 
+                    w.workoutTitle.toLowerCase() === item.workoutTitle.toLowerCase() && 
+                    w.isTemplate === item.isTemplate
+                );
+                
+                if (existing !== -1) {
+                    savedWorkouts.splice(existing, 1);
+                }
+                
+                savedWorkouts.unshift({
+                    ...item,
+                    savedAt: new Date().toISOString()
+                });
+            });
+            
+            if (savedWorkouts.length > 50) {
+                savedWorkouts = savedWorkouts.slice(0, 50);
+            }
+            
+            saveSavedWorkouts();
+            updateWorkoutSelector();
+            closeImportDialog();
+            
+            alert(`Successfully imported ${itemsToImport.length} item(s)!`);
+        }
+
+        function closeImportDialog() {
+            document.getElementById('import-dialog-modal').classList.remove('active');
+            importData = null;
         }
 
         function loadSelectedWorkout() {
@@ -918,9 +1592,17 @@
                 const index = parseInt(selectedValue);
                 if (savedWorkouts[index]) {
                     const workout = savedWorkouts[index];
+                    
+                    // Verify mode matches
+                    if ((currentMode === 'template' && !workout.isTemplate) || 
+                        (currentMode === 'workout' && workout.isTemplate)) {
+                        alert('Mode mismatch. Switching modes...');
+                        switchMode(workout.isTemplate ? 'template' : 'workout');
+                    }
+                    
                     exercises = workout.exercises || [];
                     workoutTitle = workout.workoutTitle || 'My Workout';
-                    timerSeconds = workout.timerSeconds || 0;
+                    timerSeconds = currentMode === 'template' ? 0 : (workout.timerSeconds || 0);
                     document.getElementById('workout-title').value = workoutTitle;
                     pauseTimer();
                     updateTimerDisplay();
@@ -932,6 +1614,11 @@
         }
 
         function saveWorkout() {
+            if (currentMode === 'template') {
+                alert('Switch to Workout mode to save workouts.');
+                return;
+            }
+            
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
             
             // Check if a workout with the same name already exists
@@ -966,122 +1653,22 @@
             alert('Workout saved successfully!');
         }
 
-        function saveAsTemplate() {
-            if (exercises.length === 0) {
-                alert('No exercises to save as template. Add some exercises first!');
-                return;
-            }
-
-            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
-            
-            // Check if we're currently viewing a template
-            let isEditingTemplate = false;
-            let currentTemplateIndex = -1;
-            if (currentWorkoutId !== 'current') {
-                const index = parseInt(currentWorkoutId);
-                if (savedWorkouts[index] && savedWorkouts[index].isTemplate) {
-                    isEditingTemplate = true;
-                    currentTemplateIndex = index;
-                }
-            }
-            
-            let templateTitle;
-            if (isEditingTemplate) {
-                // Use the current template name without appending " (Template)" again
-                templateTitle = workoutTitle;
-                
-                // Confirm overwrite
-                if (!confirm(`Are you sure you want to overwrite the template "${templateTitle}"?`)) {
-                    return;
-                }
-                
-                // Remove the existing template
-                savedWorkouts.splice(currentTemplateIndex, 1);
-            } else {
-                // Creating a new template - append " (Template)" if not already there
-                templateTitle = workoutTitle.endsWith(' (Template)') ? workoutTitle : workoutTitle + ' (Template)';
-                
-                // Check if a template with this name already exists
-                const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
-                if (existingIndex !== -1) {
-                    if (!confirm(`A template named "${templateTitle}" already exists. Do you want to overwrite it?`)) {
-                        return;
-                    }
-                    // Remove the existing template
-                    savedWorkouts.splice(existingIndex, 1);
-                }
-            }
-
-            // Create template with exercises but without weight/reps values
-            const templateExercises = exercises.map(exercise => ({
-                id: exercise.id,
-                name: exercise.name,
-                videoUrl: exercise.videoUrl,
-                bodyParts: exercise.bodyParts,
-                setup: exercise.setup,
-                notes: exercise.notes,
-                videoCollapsed: false,
-                sets: exercise.sets.map(() => ({ weight: '', reps: '' })) // Keep set count, clear values
-            }));
-
-            const templateData = {
-                workoutTitle: templateTitle,
-                exercises: templateExercises,
-                timerSeconds: 0,
-                savedAt: new Date().toISOString(),
-                isTemplate: true
-            };
-
-            // Add to saved workouts
-            savedWorkouts.unshift(templateData);
-            
-            // Limit to 50 workouts
-            if (savedWorkouts.length > 50) {
-                savedWorkouts = savedWorkouts.slice(0, 50);
-            }
-
-            saveSavedWorkouts();
-            updateWorkoutSelector();
-            alert('Template saved successfully!');
-        }
-
-        function showTemplateManager() {
-            // Filter only templates from savedWorkouts
-            const templates = savedWorkouts.filter(workout => workout.isTemplate === true);
-            
-            if (templates.length === 0) {
-                alert('No templates available. Save a workout as a template first!');
-                return;
-            }
-
-            const selector = document.getElementById('template-selector');
-            selector.innerHTML = '';
-            
-            templates.forEach((template, index) => {
-                const option = document.createElement('option');
-                // Store the actual index in savedWorkouts for later retrieval
-                const actualIndex = savedWorkouts.findIndex(w => w === template);
-                option.value = actualIndex;
-                const exerciseCount = template.exercises ? template.exercises.length : 0;
-                option.textContent = `${template.workoutTitle} (${exerciseCount} exercises, ${new Date(template.savedAt).toLocaleDateString()})`;
-                selector.appendChild(option);
-            });
-
-            // Set modal to "Manage Templates" mode with all three buttons (Load, Edit, Delete)
-            document.getElementById('template-modal-header').textContent = 'Manage Templates';
-            
-            document.getElementById('template-selector-modal').classList.add('active');
-        }
-
         function closeTemplateSelector() {
             document.getElementById('template-selector-modal').classList.remove('active');
         }
 
+        function getSelectedTemplateIndex() {
+            const selectedItem = document.querySelector('.template-item.selected');
+            if (!selectedItem) {
+                return null;
+            }
+            return parseInt(selectedItem.dataset.templateIndex, 10);
+        }
+
         function deleteSelectedTemplate() {
-            const selector = document.getElementById('template-selector');
-            const selectedIndex = parseInt(selector.value);
+            const selectedIndex = getSelectedTemplateIndex();
             
-            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+            if (selectedIndex === null || isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
                 alert('Please select a template to delete');
                 return;
             }
@@ -1104,15 +1691,19 @@
         }
         
         function editTemplate() {
-            const selector = document.getElementById('template-selector');
-            const selectedIndex = parseInt(selector.value);
+            const selectedIndex = getSelectedTemplateIndex();
             
-            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+            if (selectedIndex === null || isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
                 alert('Please select a template');
                 return;
             }
 
             const template = savedWorkouts[selectedIndex];
+            
+            // Switch to template mode if not already
+            if (currentMode !== 'template') {
+                switchMode('template');
+            }
             
             // Close dialog first before destroying sortable
             closeTemplateSelector();
@@ -1138,13 +1729,14 @@
             const selectedValue = selector.value;
 
             if (selectedValue === 'current') {
-                alert('Cannot delete the current workout. To clear it, use "Reset Workout".');
+                const itemType = currentMode === 'template' ? 'template' : 'workout';
+                alert(`Cannot delete the current ${itemType}. To clear it, use "Reset Workout".`);
                 return;
             }
 
             const index = parseInt(selectedValue);
             if (isNaN(index) || !savedWorkouts[index]) {
-                alert('Please select a saved workout to delete');
+                alert('Please select a saved item to delete');
                 return;
             }
 
@@ -1167,14 +1759,13 @@
             }
             
             updateWorkoutSelector();
-            alert('Workout deleted successfully!');
+            alert('Item deleted successfully!');
         }
 
         function loadTemplate() {
-            const selector = document.getElementById('template-selector');
-            const selectedIndex = parseInt(selector.value);
+            const selectedIndex = getSelectedTemplateIndex();
             
-            if (isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
+            if (selectedIndex === null || isNaN(selectedIndex) || !savedWorkouts[selectedIndex]) {
                 alert('Please select a template');
                 return;
             }
@@ -1191,12 +1782,19 @@
             // Close dialog first before destroying sortable
             closeTemplateSelector();
 
+            // Switch to workout mode
+            if (currentMode !== 'workout') {
+                switchMode('workout');
+            }
+
             // Load template (deep copy to avoid reference issues)
             exercises = JSON.parse(JSON.stringify(template.exercises || []));
-            workoutTitle = template.workoutTitle.replace(' (Template)', ''); // Remove template suffix
+            workoutTitle = template.workoutTitle.replace(' (Template)', '');
             timerSeconds = 0;
+            currentWorkoutId = 'current';
             
             document.getElementById('workout-title').value = workoutTitle;
+            document.getElementById('workout-selector').value = 'current';
             pauseTimer();
             updateTimerDisplay();
             saveToLocalStorage();
@@ -2216,15 +2814,12 @@
             const dropdown = document.getElementById('import-export-dropdown');
             dropdown.classList.remove('active');
         }
-        
-        function toggleTemplateDropdown() {
-            const dropdown = document.getElementById('template-dropdown');
-            dropdown.classList.toggle('active');
-        }
 
-        function closeTemplateDropdown() {
-            const dropdown = document.getElementById('template-dropdown');
-            dropdown.classList.remove('active');
+        function closeDropdownById(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.classList.remove('active');
+            }
         }
 
         // Auto-fill body parts for all exercises that don't have them
@@ -2288,15 +2883,31 @@
 
         // Close modal when clicking outside
         document.getElementById('add-exercise-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'add-exercise-modal') {
+            // Only close if clicking directly on the modal background, not on the modal-content or its children
+            if (e.target === e.currentTarget) {
                 closeExerciseModal();
             }
         });
 
         // Close template modal when clicking outside
         document.getElementById('template-selector-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'template-selector-modal') {
+            // Only close if clicking directly on the modal background, not on the modal-content or its children
+            if (e.target === e.currentTarget) {
                 closeTemplateSelector();
+            }
+        });
+
+        // Close share dialog when clicking outside
+        document.getElementById('share-dialog-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeShareDialog();
+            }
+        });
+
+        // Close import dialog when clicking outside
+        document.getElementById('import-dialog-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeImportDialog();
             }
         });
 
@@ -2306,17 +2917,19 @@
                 removeAutocomplete();
             }
             
-            // Close dropdown when clicking outside
-            const dropdown = document.getElementById('import-export-dropdown');
-            if (dropdown && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
+            // Close dropdowns when clicking outside
+            const dropdowns = [
+                'import-export-dropdown',
+                'share-dropdown',
+                'new-template-dropdown'
+            ];
             
-            // Close template dropdown when clicking outside
-            const templateDropdown = document.getElementById('template-dropdown');
-            if (templateDropdown && !templateDropdown.contains(e.target)) {
-                templateDropdown.classList.remove('active');
-            }
+            dropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown && !dropdown.contains(e.target)) {
+                    closeDropdownById(dropdownId);
+                }
+            });
         });
 
         // Scroll to top functionality
