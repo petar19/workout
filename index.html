@@ -1779,6 +1779,8 @@
                     
                     if (choice) {
                         // Update existing workout (deep copy to avoid reference issues)
+                        // Note: We preserve the original title with its timestamp because that represents
+                        // when the workout was originally performed, not when it was last modified
                         savedWorkouts[index] = {
                             workoutTitle: savedWorkouts[index].workoutTitle, // Keep original title with timestamp
                             exercises: JSON.parse(JSON.stringify(exercises)),
@@ -1848,6 +1850,8 @@
                     
                     if (choice) {
                         // Update existing template
+                        // Note: Templates can be renamed on update (unlike workouts which preserve their timestamp)
+                        // because template names don't represent a specific time, just a reusable template
                         const templateExercises = exercises.map(exercise => ({
                             id: exercise.id,
                             name: exercise.name,
