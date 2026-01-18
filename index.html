@@ -1150,6 +1150,12 @@
 
         function switchMode(mode) {
             const previousMode = currentMode;
+            
+            // Save current mode's data before switching (only if currentWorkoutId is 'current')
+            if (currentWorkoutId === 'current' && previousMode) {
+                saveToLocalStorage();
+            }
+            
             currentMode = mode;
             
             // Save the current mode to localStorage for persistence across page refreshes
@@ -1205,30 +1211,15 @@
                 const workout = savedWorkouts[parseInt(currentWorkoutId)];
                 if ((mode === 'template' && !workout?.isTemplate) || (mode === 'workout' && workout?.isTemplate)) {
                     currentWorkoutId = 'current';
-                    // IMPORTANT: DO NOT call loadFromLocalStorage() when switching to template mode
-                    // Template tab should start blank to prevent cross-contamination from workout tab
-                    if (mode === 'workout') {
-                        loadFromLocalStorage();
-                    } else {
-                        // Reset to blank template state
-                        exercises = [];
-                        workoutTitle = 'My Template';
-                        document.getElementById('workout-title').value = workoutTitle;
-                    }
+                    // Load the appropriate data for the new mode
+                    loadFromLocalStorage();
                     renderExercises();
                     initializeSortable();
                 }
             } else {
                 // When currentWorkoutId is 'current', check if we're switching modes
-                // If switching from workout to template, clear exercises to prevent cross-contamination
-                if (previousMode === 'workout' && mode === 'template') {
-                    exercises = [];
-                    workoutTitle = 'My Template';
-                    document.getElementById('workout-title').value = workoutTitle;
-                    renderExercises();
-                    initializeSortable();
-                } else if (previousMode === 'template' && mode === 'workout') {
-                    // Switching from template to workout - load workout data
+                if (previousMode && previousMode !== mode) {
+                    // Switching between workout and template modes - load the target mode's data
                     loadFromLocalStorage();
                     renderExercises();
                     initializeSortable();
