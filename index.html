@@ -780,6 +780,7 @@
         <div class="controls">
             <button class="btn btn-primary" onclick="showAddExerciseModal()">➕ Add Exercise</button>
             <button class="btn btn-success workout-only" onclick="saveWorkout()">💾 Save Workout</button>
+            <button class="btn btn-success template-only" onclick="saveTemplate()" style="display: none;">💾 Save Template</button>
             <button class="btn btn-success workout-only" onclick="createTemplateFromWorkout()">📋 Create Template</button>
             <button class="btn btn-primary template-only" onclick="startWorkoutFromTemplate()" style="display: none;">🚀 Start Workout from Template</button>
             <button class="btn btn-danger workout-only" onclick="resetWorkout()">🔄 Reset Workout</button>
@@ -1001,6 +1002,14 @@
             loadSavedWorkouts();
             loadFromLocalStorage();
             loadUsedExerciseNames();
+            
+            // Restore the saved mode (tab) from localStorage
+            const savedMode = localStorage.getItem('currentMode');
+            if (savedMode === 'template' || savedMode === 'workout') {
+                currentMode = savedMode;
+                switchMode(currentMode);
+            }
+            
             updateWorkoutSelector();
             renderExercises();
             initializeSortable();
@@ -1112,10 +1121,8 @@
                 if ((currentMode === 'template' && isTemplate) || (currentMode === 'workout' && !isTemplate)) {
                     const option = document.createElement('option');
                     option.value = index;
-                    const displayName = isTemplate 
-                        ? workout.workoutTitle.replace(' (Template)', '')
-                        : workout.workoutTitle;
-                    option.textContent = `${displayName} (${new Date(workout.savedAt).toLocaleDateString()})`;
+                    // No need to strip "(Template)" since we don't add it anymore
+                    option.textContent = `${workout.workoutTitle} (${new Date(workout.savedAt).toLocaleDateString()})`;
                     selector.appendChild(option);
                 }
             });
@@ -1127,6 +1134,9 @@
 
         function switchMode(mode) {
             currentMode = mode;
+            
+            // Save the current mode to localStorage for persistence across page refreshes
+            localStorage.setItem('currentMode', mode);
             
             // Update tab appearance
             const tabs = document.querySelectorAll('.mode-tab');
@@ -1225,7 +1235,8 @@
             }
 
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
-            const templateTitle = workoutTitle.endsWith(' (Template)') ? workoutTitle : workoutTitle + ' (Template)';
+            // No longer append "(Template)" - just use the title as-is
+            const templateTitle = workoutTitle;
             
             const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
             if (existingIndex !== -1) {
@@ -1269,7 +1280,8 @@
             const templateName = prompt('Enter template name:');
             if (!templateName) return;
             
-            const templateTitle = templateName.endsWith(' (Template)') ? templateName : templateName + ' (Template)';
+            // No longer append "(Template)" - just use the name as-is
+            const templateTitle = templateName;
             
             const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
             if (existingIndex !== -1) {
@@ -1310,9 +1322,8 @@
             }
 
             workoutTitle = document.getElementById('workout-title').value.trim() || 'My Workout';
-            const templateTitle = (workoutTitle.endsWith(' (Template)') 
-                ? workoutTitle.replace(' (Template)', '')
-                : workoutTitle) + ' Copy (Template)';
+            // No longer append "(Template)" - just use the title with "Copy" suffix
+            const templateTitle = workoutTitle + ' Copy';
             
             const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === templateTitle && w.isTemplate);
             if (existingIndex !== -1) {
@@ -1367,7 +1378,8 @@
                 sets: Array.from({ length: exercise.setsNumber || 1 }, () => ({ weight: '', reps: '' }))
             }));
             
-            workoutTitle = document.getElementById('workout-title').value.trim().replace(' (Template)', '');
+            // No need to strip "(Template)" since we don't add it anymore
+            workoutTitle = document.getElementById('workout-title').value.trim();
             document.getElementById('workout-title').value = workoutTitle;
             timerSeconds = 0;
             currentWorkoutId = 'current';
@@ -1743,6 +1755,62 @@
             alert('Workout saved successfully!');
         }
 
+        function saveTemplate() {
+            if (currentMode !== 'template') {
+                alert('Switch to Template mode to save templates.');
+                return;
+            }
+            
+            if (exercises.length === 0) {
+                alert('No exercises to save as template. Add some exercises first!');
+                return;
+            }
+
+            workoutTitle = document.getElementById('workout-title').value.trim() || 'My Template';
+            
+            // Check if a template with the same name already exists
+            const existingIndex = savedWorkouts.findIndex(w => w.workoutTitle === workoutTitle && w.isTemplate);
+            if (existingIndex !== -1) {
+                if (!confirm(`A template named "${workoutTitle}" already exists. Do you want to overwrite it?`)) {
+                    return;
+                }
+                // Remove the existing template
+                savedWorkouts.splice(existingIndex, 1);
+            }
+
+            const templateExercises = exercises.map(exercise => ({
+                id: exercise.id,
+                name: exercise.name,
+                videos: exercise.videos || (exercise.videoUrl ? [{ url: exercise.videoUrl, label: '' }] : []),
+                bodyParts: exercise.bodyParts,
+                setup: exercise.setup,
+                notes: exercise.notes,
+                videoCollapsed: false,
+                setsNumber: exercise.setsNumber || (exercise.sets ? exercise.sets.length : 3)
+            }));
+
+            const templateData = {
+                workoutTitle: workoutTitle,
+                exercises: templateExercises,
+                timerSeconds: 0,
+                savedAt: new Date().toISOString(),
+                isTemplate: true
+            };
+
+            // Add to saved workouts
+            savedWorkouts.unshift(templateData);
+            
+            // Limit to 50 workouts
+            if (savedWorkouts.length > 50) {
+                savedWorkouts = savedWorkouts.slice(0, 50);
+            }
+
+            saveSavedWorkouts();
+            saveToLocalStorage();
+            updateWorkoutSelector();
+            alert('Template saved successfully!');
+        }
+
         function closeTemplateSelector() {
             document.getElementById('template-selector-modal').classList.remove('active');
         }
@@ -1772,6 +1840,15 @@
             // Remove the template
             savedWorkouts.splice(selectedIndex, 1);
             saveSavedWorkouts();
+            
+            // If the deleted template was the current one, reset to "current"
+            if (currentWorkoutId === selectedIndex.toString()) {
+                currentWorkoutId = 'current';
+                loadFromLocalStorage();
+                renderExercises();
+                initializeSortable();
+            }
+            
             updateWorkoutSelector();
             
             // Close modal after deletion
@@ -1886,7 +1963,8 @@
                 sets: Array.from({ length: exercise.setsNumber || 1 }, () => ({ weight: '', reps: '' }))
             }));
             
-            workoutTitle = template.workoutTitle.replace(' (Template)', '');
+            // No need to strip "(Template)" since we don't add it anymore
+            workoutTitle = template.workoutTitle;
             timerSeconds = 0;
             currentWorkoutId = 'current';
             
