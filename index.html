@@ -1005,7 +1005,7 @@
             
             // Restore the saved mode (tab) from localStorage
             const savedMode = localStorage.getItem('currentMode');
-            if (savedMode === 'template' || savedMode === 'workout') {
+            if (savedMode && (savedMode === 'template' || savedMode === 'workout')) {
                 currentMode = savedMode;
                 switchMode(currentMode);
             }
